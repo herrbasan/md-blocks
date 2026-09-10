@@ -48,21 +48,40 @@ body.deck { background:#0d1216; overflow:hidden; }
 #bar { position:fixed; left:0; bottom:0; height:4px; background:var(--accent); width:0; transition:width .2s; }
 #count { position:fixed; right:16px; bottom:10px; color:#8fa1ae; font:13px 'Segoe UI',sans-serif; }
 </style></head>
-<body class="deck"><div id="stage"><div id="slideWrap"><div class="slide dark" data-seconds="20"></div>
-<div class="slide "><div class="columns" data-preset="" style="grid-template-columns:3fr 2fr"><div class="col "><div class="md"><ol><li>Why the kiosk exists</li><li>What visitors actually do</li><li>What ships in the first release</li></ol></div></div><div class="col card"><div class="md"><table><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody><tr><td>Length</td><td>12 min</td></tr><tr><td>Slides</td><td>7</td></tr><tr><td>Demo</td><td>Live</td></tr></tbody></table></div></div></div></div>
-<div class="slide "></div>
-<div class="slide "><div class="columns" data-preset="" style="grid-template-columns:1fr 1fr 1fr"><div class="col card"><div class="md"><h2>1. Discover</h2>
+<body class="deck"><div id="stage"><div id="slideWrap"><div class="slide dark" data-seconds="20"><div class="md"></div>
+<div class="md"><h1>Aurora Desk</h1></div>
+<div class="block lead" data-preset="lead"><p>One screen for the showroom. A clear invitation, room to be curious, and a way to continue the conversation afterwards.</p></div>
+<div class="md"><p><img src="../images/launch.jpg" alt="Abstract artwork — launch plate" loading="lazy"></p></div></div>
+<div class="slide "><div class="md"><h1>What we will show</h1></div>
+<div class="columns" data-preset="" style="grid-template-columns:3fr 2fr"><div class="col "><div class="md"><ol><li>Why the kiosk exists</li><li>What visitors actually do</li><li>What ships in the first release</li></ol></div></div><div class="col card"><div class="md"><table><thead><tr><th>Detail</th><th>Value</th></tr></thead><tbody><tr><td>Length</td><td>12 min</td></tr><tr><td>Slides</td><td>7</td></tr><tr><td>Demo</td><td>Live</td></tr></tbody></table></div></div></div>
+<div class="md"></div></div>
+<div class="slide "><div class="md"><h1>Why the kiosk exists</h1></div>
+<div class="block callout note" data-preset="note"><h3>Note: staff cannot be everywhere</h3>
+<p>Visitors arrive curious and leave unbriefed whenever the floor is busy. The kiosk is the answer that never queues.</p></div>
+<div class="md"><p>Showroom staff do their best work with visitors who already know what they want. The kiosk gets everyone to that point — on their own schedule.</p></div></div>
+<div class="slide "><div class="md"></div>
+<div class="md"><h1>The visitor journey</h1>
+<p>Three moves, shown here as cards. This slide carries its own data: the <code>reveal</code> var above drives the pacing in the slideshow renderer.</p></div>
+<div class="columns" data-preset="" style="grid-template-columns:1fr 1fr 1fr"><div class="col card"><div class="md"><h2>1. Discover</h2>
 <p><img src="../images/tour.jpg" alt="Abstract artwork — tour plate" loading="lazy"></p>
 <p>A short overview makes the choices visible before committing to a path.</p></div></div><div class="col card"><div class="md"><h2>2. Explore</h2>
 <p><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate" loading="lazy"></p>
 <p>Details appear when they are useful; the overview stays one action away.</p></div></div><div class="col card"><div class="md"><h2>3. Continue</h2>
 <p><img src="../images/launch.jpg" alt="Abstract artwork — launch plate" loading="lazy"></p>
-<p>The visitor leaves with a useful next step, not an obligation.</p></div></div></div></div>
-<div class="slide "></div>
-<div class="slide dark"></div>
-<div class="slide "><div class="columns" data-preset="" style="grid-template-columns:2fr 1fr"><div class="col "><div class="md"><ol><li>Floor pilot in the Munich showroom, November.</li><li>Readout at the December all-hands.</li><li>Rollout decision with the retail group.</li></ol></div></div><div class="col card"><div class="md"><p><strong>Owner:</strong> Product Group</p>
+<p>The visitor leaves with a useful next step, not an obligation.</p></div></div></div>
+<div class="md"></div></div>
+<div class="slide "><div class="md"><h1>What it looks like</h1></div>
+<figure class="block gallery" data-preset="gallery"><div class="gallery-grid"><figure><img src="../images/hero.jpg" alt="Abstract artwork — hero plate"></figure><figure><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate"></figure><figure><img src="../images/launch.jpg" alt="Abstract artwork — launch plate"></figure></div><figcaption><p><strong>Three views of one experience</strong> — one gallery, reordered as a unit, never three stray images.</p></figcaption></figure>
+<div class="md"></div></div>
+<div class="slide dark"><div class="md"><blockquote><p>A good journey has an invitation, room to explore, and a clear way out.</p></blockquote>
+<p>Set the quote, then let it breathe. Short slides are a feature.</p></div></div>
+<div class="slide "><div class="md"><h1>What happens next</h1></div>
+<div class="columns" data-preset="" style="grid-template-columns:2fr 1fr"><div class="col "><div class="md"><ol><li>Floor pilot in the Munich showroom, November.</li><li>Readout at the December all-hands.</li><li>Rollout decision with the retail group.</li></ol></div></div><div class="col card"><div class="md"><p><strong>Owner:</strong> Product Group</p>
 <p><strong>Pilot site:</strong> Munich</p>
-<p><strong>Ask:</strong> floor space and one power drop.</p></div></div></div></div></div></div><div id="bar"></div><div id="count"></div><script>
+<p><strong>Ask:</strong> floor space and one power drop.</p></div></div></div>
+<div class="md"></div>
+<div class="block cta" data-preset="cta"><p>Questions now, or find us in the pilot channel: <a href="https://example.com/aurora-desk">#aurora-desk</a>.</p></div>
+<div class="md"></div></div></div></div><div id="bar"></div><div id="count"></div><script>
 const slides=[...document.querySelectorAll('.slide')];let i=0;
 function show(n){slides[i]&&slides[i].classList.remove('active');i=(n+slides.length)%slides.length;slides[i].classList.add('active');
 document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';

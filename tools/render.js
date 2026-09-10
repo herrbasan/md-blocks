@@ -64,13 +64,19 @@ function parse(src) {
     i++; doc.frontmatter = parseYaml(fm.join('\n'));
   }
 
-  // one md sink per context: section-level and per-col { children, buf }
+  // A sink collects ordinary Markdown into an owning children array.
+  // The section-level sink MUST wrap section.children — not a private array.
   const newSink = () => ({ children: [], buf: [] });
   const flush = sink => { if (sink.buf.length) { sink.children.push({ type: 'md', lines: sink.buf }); sink.buf = []; } };
+  const newSection = () => {
+    section = { attrs: {}, vars: [], children: [] };
+    doc.sections.push(section);
+    sink = { children: section.children, buf: [] };
+    return section;
+  };
 
-  let section = { attrs: {}, vars: [], children: [] };
-  doc.sections.push(section);
-  let sink = newSink();
+  let section, sink;
+  newSection();
   let mode = 'root';             // root | block | columns | col
   let block = null, columns = null, colSink = null;
   let fence = null;              // {char,len,dest} — dest: array lines accumulate into
@@ -158,8 +164,7 @@ function parse(src) {
 
     if (mode === 'root' && /^(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
       flush(sink);
-      section = { attrs: {}, vars: [], children: [] };
-      doc.sections.push(section);
+      newSection();
       continue;
     }
     if (mode === 'block') block.body.push(line);
@@ -425,16 +430,20 @@ function render(doc, profile, name) {
 
 /* --------------------------------------------------------------- main */
 
-const [file, profileArg] = process.argv.slice(2);
-if (!file) { console.error('usage: node tools/render.js <file.md> [page|print|deck|all]'); process.exit(2); }
-const profiles = profileArg && profileArg !== 'all' ? [profileArg] : ['page', 'print', 'deck'];
-const source = fs.readFileSync(file, 'utf8');
-const doc = parse(source);
-const base = path.basename(file, '.md');
-const outDir = path.join(path.dirname(file), 'rendered');
-fs.mkdirSync(outDir, { recursive: true });
-for (const p of profiles) {
-  const out = path.join(outDir, `${base}.${p}.html`);
-  fs.writeFileSync(out, render(doc, p, base));
-  console.log(`${out} (${doc.sections.length} sections)`);
+module.exports = { parse, mdToHtml, render };
+
+if (require.main === module) {
+  const [file, profileArg] = process.argv.slice(2);
+  if (!file) { console.error('usage: node tools/render.js <file.md> [page|print|deck|all]'); process.exit(2); }
+  const profiles = profileArg && profileArg !== 'all' ? [profileArg] : ['page', 'print', 'deck'];
+  const source = fs.readFileSync(file, 'utf8');
+  const doc = parse(source);
+  const base = path.basename(file, '.md');
+  const outDir = path.join(path.dirname(file), 'rendered');
+  fs.mkdirSync(outDir, { recursive: true });
+  for (const p of profiles) {
+    const out = path.join(outDir, `${base}.${p}.html`);
+    fs.writeFileSync(out, render(doc, p, base));
+    console.log(`${out} (${doc.sections.length} sections)`);
+  }
 }
