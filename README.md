@@ -69,6 +69,8 @@ Each section is one slide for a slideshow renderer, and a themed region for a pa
 - **[demo/handbook-excerpt.md](demo/handbook-excerpt.md)** — a paged print document (section = page, `preset=page-break`)
 - **[demo/mara-voss-portfolio.md](demo/mara-voss-portfolio.md)** — a portfolio page
 - **[tools/validate.js](tools/validate.js)** — seed structural validator: `node tools/validate.js demo/*.md`
+- **[tools/render.js](tools/render.js)** — tri-profile renderer: `node tools/render.js demo/showcase.md`
+  emits `page` (webpage), `print` (A4), and `deck` (slideshow) HTML into `demo/rendered/`
 
 ## Status
 

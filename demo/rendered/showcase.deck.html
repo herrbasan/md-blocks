@@ -2,53 +2,144 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Aurora Desk</title>
 <style>
-:root { --ink:#1c2733; --dim:#5b6b7a; --bg:#faf9f7; --card:#ffffff; --line:#e3e0da; --accent:#0e6b63; --warn:#a2541f;
-  --dark-ink:#e9eef2; --dark-bg:#17222b; --space:1.4rem; --radius:10px; }
-* { box-sizing:border-box; }
-body { margin:0; font:16px/1.65 Georgia,'Iowan Old Style','Times New Roman',serif; color:var(--ink); background:var(--bg); }
-h1,h2,h3,h4 { font-family:'Segoe UI',system-ui,sans-serif; line-height:1.25; margin:1.4em 0 .5em; }
-h1 { font-size:2rem; } h2 { font-size:1.45rem; } h3 { font-size:1.15rem; }
-p { margin:.6em 0; } img { max-width:100%; display:block; border-radius:var(--radius); }
-code { font:0.9em/1.4 'Cascadia Code',Consolas,monospace; background:#efece6; padding:.1em .35em; border-radius:4px; }
-pre { background:#211e19; color:#e8e3d8; padding:1em 1.2em; border-radius:var(--radius); overflow:auto; }
-pre code { background:none; color:inherit; }
-blockquote { margin:.8em 0; padding:.4em 1.1em; border-left:3px solid var(--accent); color:var(--dim); font-style:italic; }
-table { border-collapse:collapse; margin:1em 0; width:100%; }
-th,td { border:1px solid var(--line); padding:.45em .7em; text-align:left; font-family:'Segoe UI',system-ui,sans-serif; font-size:.92em; }
-th { background:#f0eee9; }
-a { color:var(--accent); }
-.md > :first-child, .block > :first-child, .col > :first-child { margin-top:0; }
-.md > :last-child, .block > :last-child, .col > :last-child { margin-bottom:0; }
-.block.lead { font-size:1.2em; color:#33414e; }
-.block.callout { border-left:4px solid var(--accent); background:#eef4f3; padding:.9em 1.2em; border-radius:0 var(--radius) var(--radius) 0; }
-.block.callout.warning { border-left-color:var(--warn); background:#f7efe6; }
-.block.card, .col.card { background:var(--card); border:1px solid var(--line); padding:1.1em 1.3em; border-radius:var(--radius); box-shadow:0 1px 4px rgba(20,30,40,.05); }
-.block.cta { text-align:center; font-size:1.15em; padding:1em; }
-figure.hero { margin:1em 0; }
-figure.hero img { width:100%; max-height:52vh; object-fit:cover; }
-figure.hero figcaption { color:var(--dim); font-size:.92em; padding:.5em .2em 0; }
-.gallery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.7em; }
-section.region { padding:calc(var(--space)*2) max(6vw, calc((100vw - 980px)/2)); }
-section.region.dark { background:var(--dark-bg); color:var(--dark-ink); }
-section.region.dark .block.card, section.region.dark .col.card { background:#20303b; border-color:#2c3f4c; }
-.columns { display:grid; gap:var(--space); align-items:start; }
-.columns .col { min-width:0; }
-@media (max-width:760px) { .columns { grid-template-columns:1fr !important; } }
+:root{
+  --ink:#151a1f; --ink-2:#3a444f; --ink-3:#6e7986;
+  --paper:#fbfaf7; --paper-2:#f3efe8; --card:#ffffff;
+  --line:#e9e3d9; --line-2:#dad3c5;
+  --accent:#0d6a5f; --accent-soft:#e7f1ef;
+  --amber:#96571a; --amber-soft:#fbf1e4;
+  --dark:#131b21; --dark-2:#1d2831; --dark-line:#2c3942; --dark-ink:#e8eef2; --dark-ink-2:#9db0bd;
+  --r-sm:6px; --r:10px; --r-lg:16px;
+  --sh-1:0 1px 2px rgba(20,26,33,.05), 0 1px 3px rgba(20,26,33,.04);
+  --sh-2:0 2px 5px rgba(20,26,33,.05), 0 8px 20px rgba(20,26,33,.06);
+  --sans:'Inter','Segoe UI Variable Text','Segoe UI',system-ui,-apple-system,sans-serif;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;
+  --mono:'Cascadia Code',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.68 var(--serif);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,h4,h5,h6{font-family:var(--sans);font-weight:600;line-height:1.2;letter-spacing:-.018em;margin:1.6em 0 .5em}
+h1{font-size:clamp(1.9rem,3.4vw,2.6rem);letter-spacing:-.028em}
+h2{font-size:1.4rem} h3{font-size:1.13rem} h4{font-size:1rem}
+p{margin:.7em 0}
+a{color:var(--accent);text-underline-offset:2px;text-decoration-thickness:1px}
+strong{font-weight:600}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+img{max-width:100%;display:block;border-radius:var(--r);background:var(--paper-2)}
+code{font:.87em/1.5 var(--mono);background:var(--paper-2);padding:.12em .4em;border-radius:5px;border:1px solid var(--line)}
+pre{background:#1a2229;color:#dfe7ec;padding:1.1em 1.3em;border-radius:var(--r);overflow:auto;font-size:.9em}
+pre code{background:none;border:0;padding:0;color:inherit}
+blockquote{margin:1.4em 0;padding:.2em 0 .2em 1.3em;border-left:2px solid var(--accent);
+  font-size:1.06em;font-style:italic;color:var(--ink-2)}
+blockquote p{margin:.4em 0}
+ul,ol{margin:.7em 0;padding-left:1.3em}
+li{margin:.28em 0}
+table{border-collapse:collapse;margin:1.2em 0;width:100%;font-family:var(--sans);font-size:.9rem}
+th,td{padding:.6em .8em;text-align:left;border-bottom:1px solid var(--line)}
+thead th{border-bottom:1.5px solid var(--line-2);font-weight:600;font-size:.83rem;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:var(--paper-2)}
+figure{margin:0}
+figcaption{font-family:var(--sans);font-size:.87rem;color:var(--ink-3);padding:.7em .1em 0;line-height:1.5}
 
-body.deck { background:#0d1216; overflow:hidden; }
-#stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
-#slideWrap { width:1280px; height:720px; position:relative; transform-origin:center center; }
-.slide { position:absolute; inset:0; display:none; padding:60px 76px; background:var(--bg); color:var(--ink); border-radius:4px; overflow:hidden; }
-.slide.active { display:block; }
-.slide.dark { background:var(--dark-bg); color:var(--dark-ink); }
-.slide h1 { font-size:2.8rem; margin-top:.2em; }
-.slide .block.lead { font-size:1.5em; }
-.slide figure.hero img { max-height:400px; }
-.slide .md:first-child h1 { margin-top:.35em; }
-#bar { position:fixed; left:0; bottom:0; height:4px; background:var(--accent); width:0; transition:width .2s; }
-#count { position:fixed; right:16px; bottom:10px; color:#8fa1ae; font:13px 'Segoe UI',sans-serif; }
+/* prose measure: figures and column grids may use full width */
+.md > p, .md > ul, .md > ol, .md > blockquote, .md > h2, .md > h3, .md > h4 { max-width:70ch }
+.md > :first-child, .block > :first-child, .col > :first-child { margin-top:0 }
+.md > :last-child, .block > :last-child, .col > :last-child { margin-bottom:0 }
+
+/* blocks */
+.block{margin:1.2em 0}
+.block.lead{font-size:1.22em;line-height:1.6;color:var(--ink-2)}
+.block.callout{background:var(--accent-soft);border-left:3px solid var(--accent);
+  border-radius:0 var(--r) var(--r) 0;padding:1em 1.3em}
+.block.callout.warning{background:var(--amber-soft);border-left-color:var(--amber)}
+.block.callout h3{font-size:1rem;letter-spacing:0;margin:0 0 .35em;color:var(--accent)}
+.block.callout.warning h3{color:var(--amber)}
+.block.callout p:last-child{margin-bottom:0}
+.block.card,.col.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:1.4em 1.5em;box-shadow:var(--sh-1)}
+.block.cta{text-align:center;font-family:var(--sans);font-size:1.05rem;padding:1.2em;
+  border:1px dashed var(--line-2);border-radius:var(--r-lg);background:#fff}
+.block.cta p{margin:0}
+
+/* media: ratios keep imagery from dominating the page */
+figure.hero img{width:100%;aspect-ratio:21/9;object-fit:cover}
+figure.gallery .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7em}
+.gallery-grid figure{margin:0}
+.gallery-grid img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.block.card img,.col.card img{width:100%;aspect-ratio:16/10;object-fit:cover}
+
+/* columns */
+.columns{display:grid;gap:1.5rem;align-items:start}
+.columns .col{min-width:0}
+.columns .col img{max-height:400px;object-fit:cover}
+@media (max-width:820px){.columns{grid-template-columns:1fr !important}}
+
+/* thematic sections */
+section.region{padding:4.5rem max(6vw,calc((100vw - 1040px)/2))}
+section.region + section.region{border-top:1px solid var(--line)}
+section.region.dark{background:var(--dark);color:var(--dark-ink)}
+section.region.dark a{color:#7fd6c8}
+section.region.dark blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
+section.region.dark .block.callout{background:#1b2932;border-left-color:#3f8f83}
+section.region.dark .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
+section.region.dark .block.callout h3{color:#7fd6c8}
+section.region.dark .block.callout.warning h3{color:#e0a862}
+section.region.dark .block.card,
+section.region.dark .col.card{background:var(--dark-2);border-color:var(--dark-line);box-shadow:none}
+section.region.dark .block.cta{background:#18222a;border-color:var(--dark-line)}
+section.region.dark th,section.region.dark td{border-bottom-color:var(--dark-line)}
+section.region.dark thead th{color:var(--dark-ink-2);border-bottom-color:#3a4a55}
+section.region.dark tbody tr:nth-child(even){background:#18222a}
+section.region.dark code{background:#1b2932;border-color:var(--dark-line);color:var(--dark-ink)}
+section.region.dark figcaption{color:var(--dark-ink-2)}
+section.region.dark img{background:#1b2932}
+
+body.deck{background:#0f1519;overflow:hidden}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#slideWrap{width:1280px;height:720px;position:relative;transform-origin:center center}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;
+  justify-content:safe center;gap:.9rem;padding:56px 72px;
+  background:var(--paper);color:var(--ink);border-radius:6px;overflow:hidden;
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .22s ease,transform .22s ease}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide.dark{background:linear-gradient(160deg,#182430 0%,#101820 100%);color:var(--dark-ink)}
+.slide.dark a{color:#7fd6c8}
+.slide.dark img{background:#1b2932}
+.slide.cover h1{font-size:3rem;letter-spacing:-.035em}
+.slide h1{font-size:2.5rem;margin:0 0 .1rem;letter-spacing:-.03em}
+.slide h2{font-size:1.22rem;margin:.3em 0 .2em}
+.slide h3{font-size:1rem}
+.slide p{margin:.35em 0;font-size:1rem;line-height:1.6}
+.slide .md > p,.slide .md > ul,.slide .md > ol,.slide .md > h2,.slide .md > h3{max-width:none}
+.slide ul,.slide ol{padding-left:1.2em}
+.slide li{margin:.16em 0}
+.slide .block{margin:.6em 0}
+.slide .block.lead{font-size:1.3rem;line-height:1.5}
+.slide .block.lead p{font-size:inherit}
+.slide .block.lead p,.slide .block.lead ul{max-width:46ch}
+.slide .block.callout{padding:.85em 1.1em}
+.slide .block.card,.slide .col.card{padding:1.1em 1.2em;border-radius:12px;box-shadow:var(--sh-1)}
+.slide figure.hero{margin:0}
+.slide figure.hero img{aspect-ratio:21/9;max-height:290px}
+.slide figcaption{padding-top:.5em;font-size:.82rem}
+.slide .gallery-grid{gap:.6rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.slide .gallery-grid img{aspect-ratio:16/10;max-height:210px}
+.slide .columns{gap:1.1rem;align-items:stretch}
+.slide .col img{aspect-ratio:16/10;max-height:145px}
+.slide .col.card img{max-height:145px}
+.slide blockquote{margin:.6em 0;font-size:1.5rem;line-height:1.5;border-left-width:3px;max-width:34ch}
+.slide table{font-size:.84rem;margin:.6em 0}
+.slide th,.slide td{padding:.45em .6em}
+#bar{position:fixed;left:0;bottom:0;height:3px;width:0;transition:width .25s ease;
+  background:linear-gradient(90deg,var(--accent),#4fb3a2)}
+#count{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;
+  color:#6d7d88;font:600 11px/1 var(--sans);letter-spacing:.16em}
 </style></head>
-<body class="deck"><div id="stage"><div id="slideWrap"><div class="slide "><div class="md"><h1>Aurora Desk</h1></div>
+<body class="deck"><div id="stage"><div id="slideWrap"><div class="slide cover"><div class="md"><h1>Aurora Desk</h1></div>
 <div class="block lead" data-preset="lead"><p>A showroom experience that lets visitors explore at their own pace. One screen, a clear invitation, and enough room to be curious.</p>
 <p>This page is also a live sample of the format: every block boundary, image, and piece of data you see is authored in plain Markdown.</p></div>
 <div class="md"><p>In GitHub or VS Code this reads as an ordinary project page with horizontal rules between its parts. In the enhanced renderer each rule is a section boundary, and the same source gains columns, cards, a gallery, and media players. Document-level data — title, tags, slideshow defaults — lives in the frontmatter above.</p></div>
@@ -58,7 +149,7 @@ body.deck { background:#0d1216; overflow:hidden; }
 <div class="md"><h2>A small brief</h2>
 <ul><li>Welcome visitors without requiring staff assistance.</li><li>Make the product understandable through direct exploration.</li><li>Let interested visitors continue the conversation later.</li></ul>
 <blockquote><p>The interface should explain itself through what the visitor can do next.</p></blockquote></div></div>
-<div class="slide "><div class="md"><h1>A useful split</h1>
+<div class="slide"><div class="md"><h1>A useful split</h1>
 <p>The main story gets more space than the supporting facts. On a narrow screen the source order still reads well: story first, facts second.</p></div>
 <div class="columns" data-preset="" style="grid-template-columns:2fr 1fr"><div class="col "><div class="md"><h2>Explore without a script</h2>
 <p>Visitors move directly between features, compare options, and return to an overview whenever they want. The interface supports exploration rather than forcing a single sequence.</p>
@@ -68,7 +159,7 @@ body.deck { background:#0d1216; overflow:hidden; }
 <table><thead><tr><th>Detail</th><th>Choice</th></tr></thead><tbody><tr><td>Format</td><td>Interactive kiosk</td></tr><tr><td>Audience</td><td>Showroom visitors</td></tr><tr><td>Input</td><td>Touch</td></tr><tr><td>Year</td><td>2026</td></tr></tbody></table>
 <p><strong>Constraint:</strong> the essential journey must work without sound.</p></div></div></div>
 <div class="md"><p>The column region ended above. Together with the heading and intro paragraph, this trailing paragraph is part of <em>this section's</em> implicit Markdown run — maximal consecutive ordinary nodes, flushed only by the next directive or section break.</p></div></div>
-<div class="slide "><div class="md"><h1>A collection, not three separate images</h1>
+<div class="slide"><div class="md"><h1>A collection, not three separate images</h1>
 <p>A block that starts with a list of images is one gallery. An editor reorders its items without touching the surrounding structure; a generic preview shows a list of images.</p></div>
 <figure class="block gallery" data-preset="gallery"><div class="gallery-grid"><figure><img src="../images/hero.jpg" alt="Abstract artwork — hero plate"></figure><figure><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate"></figure><figure><img src="../images/launch.jpg" alt="Abstract artwork — launch plate"></figure><figure><img src="../images/abstract-1.jpg" alt="Abstract artwork — study I"></figure><figure><img src="../images/abstract-2.jpg" alt="Abstract artwork — study II"></figure></div><figcaption><p><strong>Three views of one experience.</strong> This caption belongs to the whole collection; each image keeps its own alternative text.</p></figcaption></figure>
 <div class="md"><p>When one image needs its own caption or crop, give it its own block.</p></div></div>
@@ -83,7 +174,7 @@ body.deck { background:#0d1216; overflow:hidden; }
 <p><img src="../images/launch.jpg" alt="Abstract artwork — launch plate" loading="lazy"></p>
 <p>The visitor leaves with a useful next step rather than an obligation to finish a form.</p></div></div></div>
 <div class="md"><blockquote><p>A good journey has an invitation, room to explore, and a clear way out.</p></blockquote></div></div>
-<div class="slide "><div class="md"><h1>Notes and deliberate boundaries</h1>
+<div class="slide"><div class="md"><h1>Notes and deliberate boundaries</h1>
 <h2>A note is still content</h2></div>
 <div class="block callout note" data-preset="note"><h3>Note: content survives the theme</h3>
 <p>The word <strong>Note</strong> is authored here, not injected by the preset. If the styling disappears, the message must not.</p></div>
@@ -109,14 +200,14 @@ const content = 'Markdown, not an executable template';</code></pre>
 <pre><code>
 This paragraph still belongs to the outer block. Only the real close below ends it.</code></pre></div>
 <div class="md"></div></div>
-<div class="slide " data-seconds="20"><div class="md"></div>
+<div class="slide" data-seconds="20"><div class="md"></div>
 <div class="md"><h1>Data with an explicit home</h1>
 <p>Named data has exactly two homes. Data about the <strong>document</strong> is frontmatter. Data about <strong>one section</strong> is a <code>var</code> inside that section. This section's <code>seconds</code> is independent of the visitor-journey section's <code>seconds</code>; nothing is inherited, nothing needs a scope flag.</p>
 <h2>A structured section value</h2></div>
 <div class="md"><p>A var and its fence are <strong>one lexical unit</strong> — nothing may come between them, and the editor moves them together.</p>
 <h2>A readable note for a presenter</h2></div>
 <div class="md"></div></div>
-<div class="slide "><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></div></div></div><div id="bar"></div><div id="count"></div><script>
+<div class="slide"><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></div></div></div><div id="bar"></div><div id="count"></div><script>
 const slides=[...document.querySelectorAll('.slide')];let i=0;
 function show(n){slides[i]&&slides[i].classList.remove('active');i=(n+slides.length)%slides.length;slides[i].classList.add('active');
 document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';

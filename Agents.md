@@ -62,8 +62,10 @@ demo/              ← tutorial + example documents (all validate clean via tool
   handbook-excerpt.md ← paged print demo (section = page, preset=page-break)
   mara-voss-portfolio.md
   images/
+  rendered/        ← generated HTML (page/print/deck profiles) — committed as result examples
 tools/
   validate.js      ← seed structural validator (zero-dep Node); NOT the reference parser
+  render.js        ← tri-profile renderer (page/print/deck); NOT the reference renderer
 _Archive/          ← history: proposals A–D, ranking, authoring-test runs + report
   proposal-a-kimi/  proposal-b-astra/  proposal-c-claude/  proposal-d-merged/
   proposal-ranking.md
