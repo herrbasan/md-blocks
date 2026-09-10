@@ -34,8 +34,8 @@ function parseAttrs(bodyRaw) {
 
 function parseYaml(text) {
   // minimal: scalars, [a, b] lists, one nesting level, numbers/booleans
-  const root = {}; const stack = [[0, root]]; const lines = text.split(/\r?\n/);
-  for (const line of lines) {
+  const root = {}; const stack = [[0, root]];
+  for (const line of text.split(/\r?\n/)) {
     if (!line.trim() || line.trim().startsWith('#')) continue;
     const indent = line.match(/^ */)[0].length;
     while (stack.length > 1 && stack[stack.length - 1][0] > indent) stack.pop();
@@ -64,28 +64,54 @@ function parse(src) {
     i++; doc.frontmatter = parseYaml(fm.join('\n'));
   }
 
+  // one md sink per context: section-level and per-col { children, buf }
+  const newSink = () => ({ children: [], buf: [] });
+  const flush = sink => { if (sink.buf.length) { sink.children.push({ type: 'md', lines: sink.buf }); sink.buf = []; } };
+
   let section = { attrs: {}, vars: [], children: [] };
   doc.sections.push(section);
-  const flushMd = () => { if (md.length) { section.children.push({ type: 'md', lines: md }); md = []; } };
-  let md = [];
-
-  let mode = 'root'; let block = null; let columns = null; let col = null;
-  let fence = null; let expectVarFence = null;
+  let sink = newSink();
+  let mode = 'root';             // root | block | columns | col
+  let block = null, columns = null, colSink = null;
+  let fence = null;              // {char,len,dest} — dest: array lines accumulate into
+  let expectVar = null;          // var awaiting its fence (blank lines between are legal)
+  let varFence = null;           // {char,len,info,body,var} — consuming a var's payload fence
 
   for (; i < lines.length; i++) {
     const line = lines[i];
 
+    // var fence consumption: everything until the closing fence is payload
+    if (varFence) {
+      const c = line.match(/^(`{3,}|~{3,})\s*$/);
+      if (c && c[1][0] === varFence.char && c[1].length >= varFence.len) {
+        varFence.var.value = varFence.info === 'json'
+          ? JSON.parse(varFence.body.join('\n') || 'null')
+          : varFence.body.join('\n');
+        varFence = null;
+      } else varFence.body.push(line);
+      continue;
+    }
+    // a valueless var must meet its fence next
+    if (expectVar) {
+      if (line.trim() === '') continue;
+      const fv = line.match(/^(`{3,}|~{3,})(.*)$/);
+      if (fv && (fv[2].trim() === 'json' || fv[2].trim() === 'text')) {
+        varFence = { char: fv[1][0], len: fv[1].length, info: fv[2].trim(), body: [], var: expectVar };
+      }
+      expectVar = null; // invalid binding: the validator reports it; parse on
+      continue;
+    }
+
     const fm = line.match(/^(`{3,}|~{3,})(.*)$/);
     if (fence) {
-      if (fm && fm[1][0] === fence.char && fm[1].length >= fence.len) {
-        if (expectVarFence) { expectVarFence.var.value = expectVarFence.info === 'json' ? JSON.parse(fence.body.join('\n') || 'null') : fence.body.join('\n'); expectVarFence = null; fence = null; continue; }
-        fence = null;
-      } else fence.body.push(line);
+      fence.dest.push(line); // fence lines stay in the md stream
+      if (fm && fm[1][0] === fence.char && fm[1].length >= fence.len) fence = null;
       continue;
     }
     if (fm) {
-      const dest = (mode === 'block') ? block.body : (mode === 'col') ? col.body : md;
-      fence = { char: fm[1][0], len: fm[1].length, info: fm[2].trim(), body: [], dest };
+      const dest = mode === 'block' ? block.body : sink.buf;
+      dest.push(line);
+      fence = { char: fm[1][0], len: fm[1].length, dest };
       continue;
     }
 
@@ -93,44 +119,55 @@ function parse(src) {
     if (dm) {
       const [, slash, kind, bodyRaw] = dm;
       if (slash) {
-        if (kind === 'block') { mode = 'root'; section.children.push(block); block = null; }
-        else { columns.cols.push(col); col = null; mode = 'root'; section.children.push(columns); columns = null; }
+        if (kind === 'block') {
+          mode = colSink ? 'col' : 'root';
+          (colSink || sink).children.push({ type: 'block', attrs: block.attrs, body: block.body });
+          block = null;
+        } else {
+          flush(colSink);
+          columns.cols.push({ attrs: colSink.attrs, children: colSink.children });
+          colSink = null; mode = 'root';
+          section.children.push({ type: 'columns', attrs: columns.attrs, cols: columns.cols });
+          columns = null;
+        }
         continue;
       }
       const attrs = parseAttrs(bodyRaw);
       if (kind === 'section') { section.attrs = attrs; continue; }
       if (kind === 'col') {
-        if (col) columns.cols.push(col);
-        col = { attrs, body: [] }; mode = 'col'; continue;
+        if (colSink) { flush(colSink); columns.cols.push({ attrs: colSink.attrs, children: colSink.children }); }
+        colSink = { attrs, ...newSink() }; mode = 'col'; continue;
       }
-      if (kind === 'columns') { flushMd(); columns = { attrs, cols: [] }; mode = 'columns'; continue; }
+      if (kind === 'columns') { flush(sink); columns = { attrs, cols: [] }; mode = 'columns'; continue; }
       if (kind === 'var') {
-        flushMd();
+        flush(sink);
         const v = { name: attrs.name, value: attrs.value };
         section.vars.push(v);
-        if (attrs.value === undefined) expectVarFence = { var: v, info: null };
+        if (attrs.value === undefined) expectVar = v;
         continue;
       }
       if (kind === 'block') {
-        flushMd();
-        if (mode === 'col') { block = { attrs, body: col.body }; }
-        else block = { attrs, body: [] };
-        mode = 'block';
+        flush(sink);
+        block = { attrs, body: [] }; mode = 'block';
         continue;
       }
     }
 
-    if (expectVarFence) { /* non-fence content after var without value: shouldn't happen (validated) */ expectVarFence = null; }
+    // ordinary HTML comment: preserved in source, invisible in rendering
+    if (/^<!--.*-->$/.test(line.trim())) continue;
 
     if (mode === 'root' && /^(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
-      flushMd(); section = { attrs: {}, vars: [], children: [] }; doc.sections.push(section); continue;
+      flush(sink);
+      section = { attrs: {}, vars: [], children: [] };
+      doc.sections.push(section);
+      continue;
     }
     if (mode === 'block') block.body.push(line);
-    else if (mode === 'col') col.body.push(line);
-    else if (mode === 'columns') { /* content before first col: validated elsewhere */ }
-    else md.push(line);
+    else if (mode === 'col') colSink.buf.push(line);
+    else if (mode === 'root') sink.buf.push(line);
+    // 'columns' before first col: blanks/comments only (validated)
   }
-  flushMd();
+  flush(sink);
   return doc;
 }
 
@@ -138,14 +175,15 @@ function parse(src) {
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+// output lives in <dir>/rendered/ — relative asset refs must climb one level
+const src = s => /^(https?:|data:|#|\/)/.test(s) ? s : '../' + s;
+
 function inline(s) {
-  let out = '';
   let rest = esc(s);
-  // code spans first
   const codes = [];
   rest = rest.replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return `\x00${codes.length - 1}\x00`; });
   rest = rest
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => `<img src="${src}" alt="${alt}" loading="lazy">`)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, s2) => `<img src="${src(s2)}" alt="${alt}" loading="lazy">`)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, h) => `<a href="${h}">${t}</a>`)
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -155,7 +193,7 @@ function inline(s) {
 
 function mdToHtml(lines) {
   const out = [];
-  let para = []; let list = null; let quote = null; let table = null;
+  let para = [], list = null, quote = null, table = null, pre = null;
   const flushPara = () => { if (para.length) { out.push(`<p>${inline(para.join(' '))}</p>`); para = []; } };
   const flushList = () => { if (list) { out.push(`<${list.tag}>${list.items.map(it => `<li>${inline(it)}</li>`).join('')}</${list.tag}>`); list = null; } };
   const flushQuote = () => { if (quote) { out.push(`<blockquote>${mdToHtml(quote)}</blockquote>`); quote = null; } };
@@ -170,6 +208,14 @@ function mdToHtml(lines) {
 
   for (const raw of lines) {
     const line = raw.replace(/\s+$/, '');
+
+    if (pre) {
+      if (new RegExp('^' + pre.char + '{3,}\\s*$').test(line)) { out.push(`<pre><code>${esc(pre.body.join('\n'))}</code></pre>`); pre = null; }
+      else pre.body.push(line);
+      continue;
+    }
+    if (/^(`{3,}|~{3,})/.test(line)) { flushAll(); pre = { char: line[0], body: [] }; continue; }
+
     if (line.trim() === '') { flushAll(); continue; }
 
     const h = line.match(/^(#{1,6})\s+(.*)$/);
@@ -177,15 +223,13 @@ function mdToHtml(lines) {
 
     if (/^(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) { flushAll(); out.push('<hr>'); continue; }
 
-    if (line.startsWith('```') || line.startsWith('~~~')) { flushAll(); continue; } // fences handled by parser for vars; standalone fence bodies arrive as plain lines below
-
     if (line.startsWith('>')) { flushPara(); flushList(); flushTable(); (quote = quote || []).push(line.replace(/^>\s?/, '')); continue; }
 
     const t = line.match(/^\|(.+)\|\s*$/);
     if (t) {
       flushPara(); flushList(); flushQuote();
       const cells = t[1].split('|').map(c => c.trim());
-      if (cells.every(c => /^:?-+:?$/.test(c))) continue; // separator row
+      if (cells.every(c => /^:?-+:?$/.test(c))) continue;
       (table = table || { rows: [] }).rows.push(cells);
       continue;
     }
@@ -199,25 +243,27 @@ function mdToHtml(lines) {
     flushList(); flushQuote(); flushTable();
     para.push(line.trim());
   }
+  if (pre && pre.body.length) out.push(`<pre><code>${esc(pre.body.join('\n'))}</code></pre>`);
   flushAll();
   return out.join('\n');
 }
 
 /* ------------------------------------------------------------- profiles */
 
-const PRESET_BLOCK = { lead: 'lead', note: 'callout note', warning: 'callout warning', card: 'card', cta: 'cta', 'page-break': 'page-break', hero: null, gallery: null };
+const PRESET_BLOCK = { lead: 'lead', note: 'callout note', warning: 'callout warning', card: 'card', cta: 'cta', 'page-break': 'page-break' };
 const MEDIA_EXT = /\.(mp4|webm|mov|mp3|wav|ogg|m4a|pdf|zip)$/i;
 
 function classifyBlock(block) {
   const body = block.body.filter(l => l.trim() !== '');
   if (!body.length) return { kind: 'empty' };
   const first = body[0];
-  let img = first.match(/^!\[[^\]]*\]\(([^)]+)\)$/);
+  const img = first.match(/^!\[[^\]]*\]\(([^)]+)\)$/);
   if (img) return { kind: 'image', src: img[1], caption: body.slice(1) };
   if (/^[-*+]\s+!\[/.test(first)) {
     const items = [];
     for (const l of body) { const m2 = l.match(/^[-*+]\s+!\[([^\]]*)\]\(([^)]+)\)$/); if (m2) items.push({ alt: m2[1], src: m2[2] }); }
-    if (items.length && items.length === body.filter(l => /^[-*+]\s/.test(l)).length)
+    const listLines = body.filter(l => /^[-*+]\s/.test(l)).length;
+    if (items.length && items.length === listLines)
       return { kind: 'image-list', items, caption: body.slice(items.length) };
   }
   const link = first.match(/^\[!\[[^\]]*\]\([^)]+\)\]\(([^)]+)\)$/) || first.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
@@ -227,17 +273,18 @@ function classifyBlock(block) {
 
 function blockHtml(block) {
   const p = block.attrs.preset;
-  const cls = ['block', PRESET_BLOCK[p] || ''].filter(Boolean).join(' ');
   if (p === 'page-break') return `<div class="page-break" data-preset="page-break"></div>`;
+  const cls = ['block', PRESET_BLOCK[p] || ''].filter(Boolean).join(' ');
   const media = classifyBlock(block);
   if (media.kind === 'image' || media.kind === 'image-list') {
+    const f = block.attrs.focal || {};
     const imgs = media.kind === 'image'
-      ? `<img src="${media.src}" alt="" style="object-position:${(block.attrs.focal?.x ?? .5) * 100}% ${(block.attrs.focal?.y ?? .5) * 100}%">`
-      : `<div class="gallery-grid">${media.items.map(it => `<figure><img src="${it.src}" alt="${esc(it.alt)}"></figure>`).join('')}</div>`;
+      ? `<img src="${src(media.src)}" alt="" style="object-position:${(f.x ?? .5) * 100}% ${(f.y ?? .5) * 100}%">`
+      : `<div class="gallery-grid">${media.items.map(it => `<figure><img src="${src(it.src)}" alt="${esc(it.alt)}"></figure>`).join('')}</div>`;
     const cap = media.caption.length ? `<figcaption>${mdToHtml(media.caption)}</figcaption>` : '';
     return `<figure class="${cls} ${p === 'gallery' ? 'gallery' : 'hero'}" data-preset="${p || ''}">${imgs}${cap}</figure>`;
   }
-  if (media.kind === 'media') return `<div class="${cls}" data-preset="${p || ''}"><p>media</p>${media.caption.length ? mdToHtml(media.caption) : ''}</div>`;
+  if (media.kind === 'media') return `<div class="${cls}" data-preset="${p || ''}">${media.caption.length ? mdToHtml(media.caption) : ''}</div>`;
   return `<div class="${cls}" data-preset="${p || ''}">${mdToHtml(block.body)}</div>`;
 }
 
@@ -246,9 +293,13 @@ function childrenHtml(children) {
     if (c.type === 'md') return `<div class="md">${mdToHtml(c.lines)}</div>`;
     if (c.type === 'block') return blockHtml(c);
     if (c.type === 'columns') {
-      const w = c.attrs.weights || c.cols.map(() => 1);
-      const cols = c.cols.map((col, n) => `<div class="col ${col.attrs.preset === 'card' ? 'card' : ''}" style="--w:${w[n] ?? 1}">${childrenHtml(col.children)}</div>`).join('');
-      return `<div class="columns" data-preset="${c.attrs.preset || ''}">${cols}</div>`;
+      const w = (c.attrs.weights && c.attrs.weights.length === c.cols.length)
+        ? c.attrs.weights
+        : c.cols.map(() => 1);
+      const tmpl = w.map(x => `${x}fr`).join(' ');
+      const cols = c.cols.map(col =>
+        `<div class="col ${col.attrs.preset === 'card' ? 'card' : ''}">${childrenHtml(col.children)}</div>`).join('');
+      return `<div class="columns" data-preset="${c.attrs.preset || ''}" style="grid-template-columns:${tmpl}">${cols}</div>`;
     }
     return '';
   }).join('\n');
@@ -270,67 +321,64 @@ table { border-collapse:collapse; margin:1em 0; width:100%; }
 th,td { border:1px solid var(--line); padding:.45em .7em; text-align:left; font-family:'Segoe UI',system-ui,sans-serif; font-size:.92em; }
 th { background:#f0eee9; }
 a { color:var(--accent); }
-.md > :first-child, .block > :first-child { margin-top:0; }
-.md > :last-child, .block > :last-child { margin-bottom:0; }
+.md > :first-child, .block > :first-child, .col > :first-child { margin-top:0; }
+.md > :last-child, .block > :last-child, .col > :last-child { margin-bottom:0; }
 .block.lead { font-size:1.2em; color:#33414e; }
 .block.callout { border-left:4px solid var(--accent); background:#eef4f3; padding:.9em 1.2em; border-radius:0 var(--radius) var(--radius) 0; }
 .block.callout.warning { border-left-color:var(--warn); background:#f7efe6; }
-.block.card { background:var(--card); border:1px solid var(--line); padding:1.1em 1.3em; border-radius:var(--radius); box-shadow:0 1px 4px rgba(20,30,40,.05); }
+.block.card, .col.card { background:var(--card); border:1px solid var(--line); padding:1.1em 1.3em; border-radius:var(--radius); box-shadow:0 1px 4px rgba(20,30,40,.05); }
 .block.cta { text-align:center; font-size:1.15em; padding:1em; }
 figure.hero { margin:1em 0; }
 figure.hero img { width:100%; max-height:52vh; object-fit:cover; }
 figure.hero figcaption { color:var(--dim); font-size:.92em; padding:.5em .2em 0; }
-.gallery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.7em; }
+.gallery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.7em; }
 section.region { padding:calc(var(--space)*2) max(6vw, calc((100vw - 980px)/2)); }
 section.region.dark { background:var(--dark-bg); color:var(--dark-ink); }
-section.region.dark .block.card { background:#20303b; border-color:#2c3f4c; }
-.columns { display:grid; gap:var(--space); grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
-@supports (grid-template-columns: repeat(2, 2fr)) {
-  .columns { grid-template-columns:repeat(var(--n,2),1fr); }
-  .columns .col { grid-column:auto; }
-}
+section.region.dark .block.card, section.region.dark .col.card { background:#20303b; border-color:#2c3f4c; }
+.columns { display:grid; gap:var(--space); align-items:start; }
 .columns .col { min-width:0; }
+@media (max-width:760px) { .columns { grid-template-columns:1fr !important; } }
 `;
 
 const CSS_PAGE = `
-.columns { grid-template-columns:repeat(var(--n,2),1fr) !important; }
-@supports not (width: min(10px, 5px)) { .columns { display:block; } }
-header.doc { padding:3rem max(6vw, calc((100vw - 980px)/2)) 0; }
+header.doc { padding:3rem max(6vw, calc((100vw - 980px)/2)) 1rem; }
 header.doc .meta { color:var(--dim); font-family:'Segoe UI',system-ui,sans-serif; font-size:.9em; }
 header.doc .meta span { background:#efece6; border-radius:99px; padding:.15em .8em; margin-right:.4em; display:inline-block; }
 `;
 
 const CSS_PRINT = `
-@page { size:A4; margin:18mm 16mm; }
+@page { size:A4; margin:0; }
 body { background:#eceae6; font-size:11.5pt; }
 .sheet { background:#fff; width:210mm; min-height:297mm; margin:8mm auto; padding:18mm 16mm; box-shadow:0 2px 10px rgba(0,0,0,.12); }
-.sheet .pagebreak-marker { display:none; }
+.sheet.dochead { padding-bottom:0; }
 @media print {
   body { background:#fff; }
-  .sheet { margin:0; box-shadow:none; width:auto; min-height:auto; padding:0; break-after:page; }
+  .sheet { margin:0; box-shadow:none; width:auto; min-height:auto; break-after:page; }
   .sheet:last-child { break-after:auto; }
+  .page-break { break-after:page; height:0; border:none; margin:0; }
 }
 section.region { padding:0; }
+.page-break { height:0; border-top:2px dashed #d8d4cc; margin:1.5em 0; }
 `;
 
 const CSS_DECK = `
-body.deck { background:#0d1216; overflow:hidden; font-family:Georgia,serif; }
+body.deck { background:#0d1216; overflow:hidden; }
 #stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
 #slideWrap { width:1280px; height:720px; position:relative; transform-origin:center center; }
 .slide { position:absolute; inset:0; display:none; padding:60px 76px; background:var(--bg); color:var(--ink); border-radius:4px; overflow:hidden; }
 .slide.active { display:block; }
 .slide.dark { background:var(--dark-bg); color:var(--dark-ink); }
-.slide h1 { font-size:3rem; margin-top:.2em; }
+.slide h1 { font-size:2.8rem; margin-top:.2em; }
+.slide .block.lead { font-size:1.5em; }
+.slide figure.hero img { max-height:400px; }
 .slide .md:first-child h1 { margin-top:.35em; }
 #bar { position:fixed; left:0; bottom:0; height:4px; background:var(--accent); width:0; transition:width .2s; }
 #count { position:fixed; right:16px; bottom:10px; color:#8fa1ae; font:13px 'Segoe UI',sans-serif; }
-.slide .block.lead { font-size:1.5em; }
-.slide figure.hero img { max-height:380px; }
 `;
 
 const DECK_JS = `
 const slides=[...document.querySelectorAll('.slide')];let i=0;
-function show(n){slides[i]?.classList.remove('active');i=(n+slides.length)%slides.length;slides[i].classList.add('active');
+function show(n){slides[i]&&slides[i].classList.remove('active');i=(n+slides.length)%slides.length;slides[i].classList.add('active');
 document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
 document.getElementById('count').textContent=(i+1)+' / '+slides.length;}
 function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);document.getElementById('slideWrap').style.transform='scale('+s+')';}
@@ -349,31 +397,28 @@ function shell(title, css, body, js) {
 <body${js ? ' class="deck"' : ''}>${body}${js ? `<script>${js}</script>` : ''}</body></html>`;
 }
 
-function sectionContent(s, forDeck) {
-  return childrenHtml(s.children);
-}
-
 function render(doc, profile, name) {
   const fm = doc.frontmatter; const title = fm.title || name;
   if (profile === 'page') {
     const tags = (fm.tags || []).map(t => `<span>${esc(String(t))}</span>`).join('');
     const header = `<header class="doc"><h1>${esc(title)}</h1>${tags ? `<p class="meta">${tags}</p>` : ''}</header>`;
     const body = doc.sections.map(s =>
-      `<section class="region ${s.attrs.preset || ''}"${s.attrs.id ? ` id="${esc(s.attrs.id)}"` : ''} data-preset="${s.attrs.preset || ''}">${sectionContent(s)}</section>`).join('\n');
+      `<section class="region ${s.attrs.preset || ''}"${s.attrs.id ? ` id="${esc(s.attrs.id)}"` : ''} data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section>`).join('\n');
     return shell(title, CSS_PAGE, header + body);
   }
   if (profile === 'print') {
+    const meta = [fm.version ? 'v' + fm.version : '', fm.updated || fm.date || '', fm.audience].filter(Boolean).join(' · ');
+    const head = `<div class="sheet dochead"><h1>${esc(title)}</h1>${meta ? `<p class="meta">${esc(meta)}</p>` : ''}<hr></div>`;
     const body = doc.sections.map(s =>
-      `<div class="sheet"><section class="region ${s.attrs.preset || ''}" data-preset="${s.attrs.preset || ''}">${sectionContent(s)}</section></div>`).join('\n');
-    const head = `<div class="sheet dochead"><h1>${esc(title)}</h1><p class="meta">${esc(String(fm.version ? 'v' + fm.version + ' · ' : ''))}${esc(String(fm.updated || fm.date || ''))}${fm.audience ? ' · ' + esc(String(fm.audience)) : ''}</p><hr></div>`;
-    return shell(title + ' (print)', CSS_PRINT, head + body);
+      `<div class="sheet"><section class="region ${s.attrs.preset || ''}" data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section></div>`).join('\n');
+    return shell(title + ' — print', CSS_PRINT, head + body);
   }
   if (profile === 'deck') {
     const body = doc.sections.map(s => {
       const secs = s.vars.find(v => v.name === 'seconds');
-      return `<div class="slide ${s.attrs.preset === 'dark' ? 'dark' : ''}"${secs ? ` data-seconds="${secs.value}"` : ''}>${sectionContent(s, true)}</div>`;
+      return `<div class="slide ${s.attrs.preset === 'dark' ? 'dark' : ''}"${secs ? ` data-seconds="${secs.value}"` : ''}>${childrenHtml(s.children)}</div>`;
     }).join('\n');
-    return shell(title, CSS_DECK + CSS_PAGE, `<div id="stage"><div id="slideWrap">${body}</div></div><div id="bar"></div><div id="count"></div>`, DECK_JS);
+    return shell(title, CSS_DECK, `<div id="stage"><div id="slideWrap">${body}</div></div><div id="bar"></div><div id="count"></div>`, DECK_JS);
   }
   throw new Error('unknown profile ' + profile);
 }
@@ -383,8 +428,8 @@ function render(doc, profile, name) {
 const [file, profileArg] = process.argv.slice(2);
 if (!file) { console.error('usage: node tools/render.js <file.md> [page|print|deck|all]'); process.exit(2); }
 const profiles = profileArg && profileArg !== 'all' ? [profileArg] : ['page', 'print', 'deck'];
-const src = fs.readFileSync(file, 'utf8');
-const doc = parse(src);
+const source = fs.readFileSync(file, 'utf8');
+const doc = parse(source);
 const base = path.basename(file, '.md');
 const outDir = path.join(path.dirname(file), 'rendered');
 fs.mkdirSync(outDir, { recursive: true });

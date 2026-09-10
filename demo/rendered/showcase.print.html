@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aurora Desk — print</title>
+<style>
+:root { --ink:#1c2733; --dim:#5b6b7a; --bg:#faf9f7; --card:#ffffff; --line:#e3e0da; --accent:#0e6b63; --warn:#a2541f;
+  --dark-ink:#e9eef2; --dark-bg:#17222b; --space:1.4rem; --radius:10px; }
+* { box-sizing:border-box; }
+body { margin:0; font:16px/1.65 Georgia,'Iowan Old Style','Times New Roman',serif; color:var(--ink); background:var(--bg); }
+h1,h2,h3,h4 { font-family:'Segoe UI',system-ui,sans-serif; line-height:1.25; margin:1.4em 0 .5em; }
+h1 { font-size:2rem; } h2 { font-size:1.45rem; } h3 { font-size:1.15rem; }
+p { margin:.6em 0; } img { max-width:100%; display:block; border-radius:var(--radius); }
+code { font:0.9em/1.4 'Cascadia Code',Consolas,monospace; background:#efece6; padding:.1em .35em; border-radius:4px; }
+pre { background:#211e19; color:#e8e3d8; padding:1em 1.2em; border-radius:var(--radius); overflow:auto; }
+pre code { background:none; color:inherit; }
+blockquote { margin:.8em 0; padding:.4em 1.1em; border-left:3px solid var(--accent); color:var(--dim); font-style:italic; }
+table { border-collapse:collapse; margin:1em 0; width:100%; }
+th,td { border:1px solid var(--line); padding:.45em .7em; text-align:left; font-family:'Segoe UI',system-ui,sans-serif; font-size:.92em; }
+th { background:#f0eee9; }
+a { color:var(--accent); }
+.md > :first-child, .block > :first-child, .col > :first-child { margin-top:0; }
+.md > :last-child, .block > :last-child, .col > :last-child { margin-bottom:0; }
+.block.lead { font-size:1.2em; color:#33414e; }
+.block.callout { border-left:4px solid var(--accent); background:#eef4f3; padding:.9em 1.2em; border-radius:0 var(--radius) var(--radius) 0; }
+.block.callout.warning { border-left-color:var(--warn); background:#f7efe6; }
+.block.card, .col.card { background:var(--card); border:1px solid var(--line); padding:1.1em 1.3em; border-radius:var(--radius); box-shadow:0 1px 4px rgba(20,30,40,.05); }
+.block.cta { text-align:center; font-size:1.15em; padding:1em; }
+figure.hero { margin:1em 0; }
+figure.hero img { width:100%; max-height:52vh; object-fit:cover; }
+figure.hero figcaption { color:var(--dim); font-size:.92em; padding:.5em .2em 0; }
+.gallery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.7em; }
+section.region { padding:calc(var(--space)*2) max(6vw, calc((100vw - 980px)/2)); }
+section.region.dark { background:var(--dark-bg); color:var(--dark-ink); }
+section.region.dark .block.card, section.region.dark .col.card { background:#20303b; border-color:#2c3f4c; }
+.columns { display:grid; gap:var(--space); align-items:start; }
+.columns .col { min-width:0; }
+@media (max-width:760px) { .columns { grid-template-columns:1fr !important; } }
+
+@page { size:A4; margin:0; }
+body { background:#eceae6; font-size:11.5pt; }
+.sheet { background:#fff; width:210mm; min-height:297mm; margin:8mm auto; padding:18mm 16mm; box-shadow:0 2px 10px rgba(0,0,0,.12); }
+.sheet.dochead { padding-bottom:0; }
+@media print {
+  body { background:#fff; }
+  .sheet { margin:0; box-shadow:none; width:auto; min-height:auto; break-after:page; }
+  .sheet:last-child { break-after:auto; }
+  .page-break { break-after:page; height:0; border:none; margin:0; }
+}
+section.region { padding:0; }
+.page-break { height:0; border-top:2px dashed #d8d4cc; margin:1.5em 0; }
+</style></head>
+<body><div class="sheet dochead"><h1>Aurora Desk</h1><hr></div><div class="sheet"><section class="region " data-preset=""></section></div>
+<div class="sheet"><section class="region " data-preset=""><div class="columns" data-preset="" style="grid-template-columns:2fr 1fr"><div class="col "><div class="md"><h2>Explore without a script</h2>
+<p>Visitors move directly between features, compare options, and return to an overview whenever they want. The interface supports exploration rather than forcing a single sequence.</p>
+<ol><li>Choose an area of interest.</li><li>Look closer at the details.</li><li>Save a useful next step.</li></ol>
+<p><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate" loading="lazy"></p>
+<p>The image above is plain Markdown — no directive, no block. It belongs to this column's implicit Markdown run (§6.1): the same chunk boundaries on every parse, in every tool.</p></div></div><div class="col card"><div class="md"><h2>At a glance</h2>
+<table><thead><tr><th>Detail</th><th>Choice</th></tr></thead><tbody><tr><td>Format</td><td>Interactive kiosk</td></tr><tr><td>Audience</td><td>Showroom visitors</td></tr><tr><td>Input</td><td>Touch</td></tr><tr><td>Year</td><td>2026</td></tr></tbody></table>
+<p><strong>Constraint:</strong> the essential journey must work without sound.</p></div></div></div></section></div>
+<div class="sheet"><section class="region " data-preset=""></section></div>
+<div class="sheet"><section class="region dark" data-preset="dark"><div class="columns" data-preset="" style="grid-template-columns:1fr 1fr 1fr"><div class="col card"><div class="md"><h2>1. Discover</h2>
+<p><img src="../images/tour.jpg" alt="Abstract artwork — tour plate" loading="lazy"></p>
+<p>A short overview makes the choices visible before committing to a path.</p></div></div><div class="col card"><div class="md"><h2>2. Explore</h2>
+<p><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate" loading="lazy"></p>
+<p>Details appear when they are useful. The overview stays one obvious action away.</p></div></div><div class="col card"><div class="md"><h2>3. Continue</h2>
+<p><img src="../images/launch.jpg" alt="Abstract artwork — launch plate" loading="lazy"></p>
+<p>The visitor leaves with a useful next step rather than an obligation to finish a form.</p></div></div></div></section></div>
+<div class="sheet"><section class="region " data-preset=""></section></div>
+<div class="sheet"><section class="region " data-preset=""></section></div>
+<div class="sheet"><section class="region " data-preset=""></section></div></body></html>
