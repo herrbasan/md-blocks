@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layout Showcase — rendered from blocks</title>
+<style>
+  :root {
+    --ink: #12222e;
+    --muted: #5b6b78;
+    --panel: #ffffff;
+    --line: #e4e9ee;
+    --brand: #1e6f8f;
+    --brand-2: #3bb3c0;
+    --dark-ink: #e9f1f5;
+    --dark-panel: #122530;
+    --radius: 16px;
+    --space: 28px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    background: #f4f6f8;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  /* masthead from <!-- document --> fields */
+  .masthead {
+    background: linear-gradient(135deg, #0f2b46, #1e6f8f 60%, #3bb3c0);
+    color: #fff; padding: 72px 0 56px;
+  }
+  .masthead h1 { font-size: 44px; margin: 0 0 10px; font-family: "Segoe UI", system-ui, sans-serif; }
+  .masthead p { color: rgba(255,255,255,.85); margin: 0; font-size: 17px; max-width: 560px; }
+  .tagrow { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); padding: 4px 12px; border-radius: 999px; font-size: 13px; font-family: "Segoe UI",sans-serif; }
+
+  section { padding: var(--space) 0; }
+
+  /* pattern label: which directive produced this block */
+  .pat {
+    font-family: Consolas, monospace; font-size: 12px; letter-spacing: .04em;
+    color: var(--brand); background: #e7f2f5; border: 1px solid #cfe5ea;
+    display: inline-block; padding: 3px 10px; border-radius: 999px; margin-bottom: 16px;
+  }
+  .dark .pat { color: #8fe3ee; background: rgba(59,179,192,.12); border-color: rgba(59,179,192,.35); }
+
+  h2 { font-family: "Segoe UI", system-ui, sans-serif; font-size: 26px; margin: 0 0 14px; }
+  h3 { font-family: "Segoe UI", system-ui, sans-serif; font-size: 19px; margin: 0 0 10px; }
+  .lead { font-size: 1.18em; color: #2c3b46; }
+  .muted { color: var(--muted); }
+
+  /* media */
+  .hero img { width: 100%; border-radius: var(--radius); box-shadow: 0 20px 50px rgba(18,34,46,.18); }
+  .hero + .hero { margin-top: 24px; }
+  .fields { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .fields span { font-family: Consolas, monospace; font-size: 12px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); padding: 3px 10px; border-radius: 6px; }
+
+  /* columns */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cols-21 { grid-template-columns: 2fr 1fr; }
+  .cols img { width: 100%; border-radius: 12px; }
+  .gallery img { box-shadow: 0 10px 28px rgba(18,34,46,.12); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .factbox b { display: block; font-family: "Segoe UI",sans-serif; margin-bottom: 8px; }
+
+  blockquote { margin: 0; padding: 4px 0 4px 20px; border-left: 4px solid var(--brand-2); color: #33505e; font-style: italic; }
+  blockquote strong { color: var(--brand); }
+
+  /* vars surfaced */
+  .varrow { display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap; }
+  .cta { display: inline-block; background: var(--brand-2); color: #06222e; padding: 12px 22px; border-radius: 999px; font-family: "Segoe UI",sans-serif; font-weight: 600; text-decoration: none; }
+  .cta.ghost { background: transparent; border: 2px solid var(--brand); color: var(--brand); }
+  .datacard { flex: 1; min-width: 260px; background: #0d1a23; color: #cfe9f2; border-radius: 12px; padding: 18px 22px; font-family: Consolas, monospace; font-size: 13px; line-height: 1.6; }
+  .datacard .k { color: #7fd8ff; }
+  .datacard .cap { color: #6b8899; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; font-family: "Segoe UI",sans-serif; }
+
+  /* content inference */
+  table { width: 100%; border-collapse: collapse; font-family: "Segoe UI",sans-serif; font-size: 15px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: 12px; }
+  td:first-child { font-weight: 600; }
+  .dark table { color: var(--dark-ink); }
+  .dark th { color: #9fb2bf; }
+  .dark th, .dark td { border-bottom-color: rgba(255,255,255,.12); }
+
+  ul { padding-left: 20px; }
+  li::marker { color: var(--brand-2); }
+  .task-done { text-decoration: line-through; color: var(--muted); }
+
+  pre { background: #0d1a23; color: #cfe9f2; border-radius: 12px; padding: 18px 22px; overflow: auto; font-family: Consolas, monospace; font-size: 14px; line-height: 1.5; }
+  code.kw { color: #7fd8ff; }
+  td code, p code { background: #eef3f6; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 13px; }
+
+  /* dark section = slide */
+  .dark { background: linear-gradient(160deg, #0c1a24, #122530); color: var(--dark-ink); }
+  .dark h2, .dark h3 { color: #fff; }
+  .dark .muted { color: #9fb2bf; }
+  .step { text-align: center; }
+  .step b { display: block; margin-top: 10px; color: #fff; font-family: "Segoe UI",sans-serif; }
+  .step .muted { color: #9fb2bf; font-size: 14px; }
+
+  .foot { text-align: center; color: var(--muted); font-size: 13px; padding: 28px 0 40px; font-family: "Segoe UI",sans-serif; }
+
+  @media (max-width: 720px) {
+    .cols, .cols-3, .cols-21 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- document: title, purpose, status, cover -->
+<header class="masthead">
+  <div class="wrap">
+    <h1>Layout Showcase</h1>
+    <p>Every layout option expressible in blocks markdown — one document, ten patterns.</p>
+    <div class="tagrow">
+      <span class="tag">status: demo</span>
+      <span class="tag">cover: hero.svg</span>
+      <span class="tag">6 directives</span>
+    </div>
+  </div>
+</header>
+
+<!-- 1 · full-width prose (no directive) -->
+<section class="wrap">
+  <span class="pat">01 · bare markdown</span>
+  <h2>Full-width prose</h2>
+  <p class="lead">No directive at all. Everything between sections is a content block, type inferred from the markdown — paragraphs, <strong>emphasis</strong>, lists, quotes, tables, code.</p>
+  <blockquote>Single-column flow is the baseline. Every layout below is an <strong>opt-in</strong> exception, not the default.</blockquote>
+</section>
+
+<!-- 2 · media class="hero" + media with structured fields -->
+<section class="wrap">
+  <span class="pat">02 · &lt;!-- media class="hero" --&gt;</span>
+  <div class="hero"><img src="images/hero.svg" alt="Hero"></div>
+
+  <div style="margin-top:32px">
+    <span class="pat">02b · media + fields: focal, variants, alt</span>
+    <div class="hero"><img src="images/hero.svg" alt="Aurora kiosk in showroom"></div>
+    <div class="fields">
+      <span>focal: { x: 0.5, y: 0.3 }</span>
+      <span>variants: [mobile, desktop]</span>
+      <span>alt: Aurora kiosk in showroom</span>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · columns:2 class="product" -->
+<section class="wrap">
+  <span class="pat">03 · columns:2 class="product"</span>
+  <div class="cols">
+    <div>
+      <h2>The kiosk</h2>
+      <p>Text column: headings, prose, and lists accumulate here.</p>
+      <ul>
+        <li>Self-guided, no staff needed</li>
+        <li><strong>Flick</strong> between screens, pinch to zoom</li>
+        <li>Auto-returns to the attract loop when idle</li>
+      </ul>
+    </div>
+    <div><img src="images/kiosk.svg" alt="Kiosk"></div>
+  </div>
+</section>
+
+<!-- 4 · columns:2 split="2:1" -->
+<section class="wrap">
+  <span class="pat">04 · columns:2 split="2:1"</span>
+  <div class="cols cols-21">
+    <div>
+      <h2>Wide column</h2>
+      <p>The primary reading flow gets two parts of the grid. Long prose stays comfortable; the sidebar stays narrow. Useful for article + fact-box layouts, changelogs with a metadata rail, or spec + example pairings.</p>
+    </div>
+    <div class="card factbox">
+      <b>Fact box</b>
+      <ul>
+        <li>Year: 2026</li>
+        <li>Stack: vanilla</li>
+        <li>Deps: 0</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · columns:3 cards -->
+<section class="wrap">
+  <span class="pat">05 · columns:3</span>
+  <div class="cols cols-3">
+    <div class="card step"><img src="images/tour.svg" alt=""><b>Overview</b><span class="muted">The attract loop.</span></div>
+    <div class="card step"><img src="images/tour.svg" alt=""><b>Live demo</b><span class="muted">Full touch control.</span></div>
+    <div class="card step"><img src="images/tour.svg" alt=""><b>Capture</b><span class="muted">Lead form on exit.</span></div>
+  </div>
+</section>
+
+<!-- 6 · columns:2 class="gallery" (media-only) -->
+<section class="wrap">
+  <span class="pat">06 · columns:2 class="gallery" — media-only columns</span>
+  <div class="cols gallery">
+    <div><img src="images/kiosk.svg" alt="Kiosk"></div>
+    <div><img src="images/launch.svg" alt="Launch"></div>
+  </div>
+</section>
+
+<!-- 7 · var: inline / two-line / fenced -->
+<section class="wrap">
+  <span class="pat">07 · var — inline, two-line, fenced</span>
+  <h2>Data blocks, surfaced</h2>
+  <p class="muted">Vars never render as page content — the renderer decides where they appear. Here <code>var:link</code> and <code>var:cta</code> become buttons, <code>var:config</code> becomes a settings card.</p>
+  <div class="varrow" style="margin-top:16px">
+    <div style="display:flex; gap:12px; align-items:center">
+      <a class="cta" href="https://aurora.example.com/desk" rel="nofollow">Open the app &rarr;</a>
+      <a class="cta ghost" href="#" rel="nofollow">Book a showroom demo</a>
+    </div>
+    <div class="datacard">
+      <div class="cap">var:config · json</div>
+      <div>{ <span class="k">"theme"</span>: <span class="k">"dark"</span>, <span class="k">"autoplay"</span>: true,</div>
+      <div>&nbsp;&nbsp;<span class="k">"loop_seconds"</span>: 30,</div>
+      <div>&nbsp;&nbsp;<span class="k">"screens"</span>: [<span class="k">"overview"</span>, <span class="k">"live-demo"</span>, <span class="k">"capture"</span>] }</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · section title="The Product Tour" class="dark" -->
+<section class="dark">
+  <div class="wrap">
+    <span class="pat">08 · section title="The Product Tour" class="dark"</span>
+    <h2>What the visitor sees</h2>
+    <p class="muted">Dark-region content: prose, then a three-up grid, then a quote — a slide with real layout inside, not just a title card.</p>
+    <div class="cols cols-3" style="margin-top:24px">
+      <div class="step"><img src="images/tour.svg" alt=""><b>Overview</b></div>
+      <div class="step"><img src="images/tour.svg" alt=""><b>Live demo</b></div>
+      <div class="step"><img src="images/tour.svg" alt=""><b>Capture</b></div>
+    </div>
+    <blockquote style="margin-top:28px; color:#c8d8e0">Sections close implicitly: the next heading or <strong>section</strong> directive ends them. Only <strong>columns</strong> has an explicit close tag, because it's a container, not a flow marker.</blockquote>
+  </div>
+</section>
+
+<!-- 9 · content inference: table, task list, code -->
+<section class="wrap">
+  <span class="pat">09 · bare markdown — type inferred</span>
+  <h2>Content inference</h2>
+  <table>
+    <tr><th>Feature</th><th>Format</th><th>Preview</th></tr>
+    <tr><td>Sections</td><td><code>#</code> or <code>&lt;!-- section --&gt;</code></td><td>heading</td></tr>
+    <tr><td>Columns</td><td><code>&lt;!-- columns:N --&gt;</code> … <code>&lt;!-- /columns --&gt;</code></td><td>stacked</td></tr>
+    <tr><td>Data</td><td><code>&lt;!-- var:name --&gt;</code></td><td>hidden or code block</td></tr>
+    <tr><td>Media</td><td><code>&lt;!-- media --&gt;</code> + image</td><td>image</td></tr>
+  </table>
+
+  <div class="cols" style="margin-top:28px">
+    <div>
+      <h3>Task list</h3>
+      <ul>
+        <li class="task-done">Sections from headings</li>
+        <li class="task-done">Columns with close tag</li>
+        <li class="task-done">Vars in three forms</li>
+        <li><code>nui-blocks</code> renderer</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Code</h3>
+      <pre><code><span class="kw">const</span> tree = parseBlocks(markdown);
+<span class="kw">// →</span> { document: {…}, sections: […] }</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · grammar summary -->
+<section class="dark">
+  <div class="wrap">
+    <span class="pat">10 · the grammar</span>
+    <h2>Six words of vocabulary</h2>
+    <p class="muted">One rule for directives: <code>kind</code> + optional first-line shorthand + optional line-based fields.</p>
+    <table style="margin-top:18px">
+      <tr><th>Directive</th><th>Scope</th><th>Closes</th></tr>
+      <tr><td>document</td><td>whole file</td><td>—</td></tr>
+      <tr><td>section / #</td><td>until next section</td><td>implicit</td></tr>
+      <tr><td>media</td><td>binds the next image</td><td>implicit</td></tr>
+      <tr><td>var:name</td><td>inline / next line / fence</td><td>implicit</td></tr>
+      <tr><td>columns:N</td><td>container</td><td>/columns (explicit)</td></tr>
+      <tr><td>col</td><td>next slot inside columns</td><td>next col or /columns</td></tr>
+    </table>
+    <p class="muted" style="margin-top:18px">Everything else is markdown.</p>
+  </div>
+</section>
+
+<div class="foot">Rendered from the layout showcase &middot; <code>docs/cms-migration/blocks-markdown/proposal-a-kimi/showcase.md</code></div>
+
+</body>
+</html>
