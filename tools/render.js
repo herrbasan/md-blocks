@@ -312,7 +312,7 @@ function childrenHtml(children) {
 
 const CSS_BASE = `
 :root{
-  --ink:#151a1f; --ink-2:#3a444f; --ink-3:#6e7986;
+  --ink:#151a1f; --ink-2:#3a444f; --ink-3:#5f6975;
   --paper:#fbfaf7; --paper-2:#f3efe8; --card:#ffffff;
   --line:#e9e3d9; --line-2:#dad3c5;
   --accent:#0d6a5f; --accent-soft:#e7f1ef;
@@ -389,22 +389,29 @@ figure.gallery .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,
 /* thematic sections */
 section.region{padding:4.5rem max(6vw,calc((100vw - 1040px)/2))}
 section.region + section.region{border-top:1px solid var(--line)}
-section.region.dark{background:var(--dark);color:var(--dark-ink)}
-section.region.dark a{color:#7fd6c8}
-section.region.dark blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
-section.region.dark .block.callout{background:#1b2932;border-left-color:#3f8f83}
-section.region.dark .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
-section.region.dark .block.callout h3{color:#7fd6c8}
-section.region.dark .block.callout.warning h3{color:#e0a862}
-section.region.dark .block.card,
-section.region.dark .col.card{background:var(--dark-2);border-color:var(--dark-line);box-shadow:none}
-section.region.dark .block.cta{background:#18222a;border-color:var(--dark-line)}
-section.region.dark th,section.region.dark td{border-bottom-color:var(--dark-line)}
-section.region.dark thead th{color:var(--dark-ink-2);border-bottom-color:#3a4a55}
-section.region.dark tbody tr:nth-child(even){background:#18222a}
-section.region.dark code{background:#1b2932;border-color:var(--dark-line);color:var(--dark-ink)}
-section.region.dark figcaption{color:var(--dark-ink-2)}
-section.region.dark img{background:#1b2932}
+
+/* Dark theme — ONE scope covering both containers a renderer may mark dark:
+   section.region.dark (page/print) and .slide.dark (deck). Every inverting rule
+   must live here: scoping these to the section alone left the deck rendering
+   light text on white cards and code (contrast 1.17:1 — invisible). */
+.dark{background:var(--dark);color:var(--dark-ink)}
+.dark a{color:#7fd6c8}
+.dark .block.lead{color:var(--dark-ink-2)}
+.dark blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
+.dark .block.callout{background:#1b2932;border-left-color:#3f8f83}
+.dark .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
+.dark .block.callout h3{color:#7fd6c8}
+.dark .block.callout.warning h3{color:#e0a862}
+.dark .block.card,.dark .col.card{background:var(--dark-2);border-color:var(--dark-line);box-shadow:none}
+.dark .block.cta{background:#18222a;border-color:var(--dark-line);color:var(--dark-ink)}
+.dark hr{border-top-color:var(--dark-line)}
+.dark th,.dark td{border-bottom-color:var(--dark-line)}
+.dark thead th{color:var(--dark-ink-2);border-bottom-color:#3a4a55}
+.dark tbody tr:nth-child(even){background:#18222a}
+.dark code{background:#1b2932;border-color:var(--dark-line);color:var(--dark-ink)}
+.dark pre{background:#0f1519;border:1px solid var(--dark-line)}
+.dark figcaption{color:var(--dark-ink-2)}
+.dark img{background:#1b2932}
 `;
 
 const CSS_PAGE = `
@@ -431,7 +438,7 @@ body{background:#e9e6e0;counter-reset:page;font-size:10.5pt;line-height:1.62}
   margin:8mm auto;padding:20mm 18mm 24mm;counter-increment:page;
   box-shadow:0 1px 3px rgba(0,0,0,.09), 0 10px 30px rgba(0,0,0,.07)}
 .sheet::after{content:counter(page);position:absolute;left:0;right:0;bottom:11mm;
-  text-align:center;font-family:var(--sans);font-size:8.5pt;color:#a8b0b6;letter-spacing:.08em}
+  text-align:center;font-family:var(--sans);font-size:8.5pt;color:var(--ink-3);letter-spacing:.08em}
 .sheet h1{font-size:1.85rem;padding-bottom:.35em;border-bottom:1.5px solid var(--line);margin:0 0 .9em}
 .sheet h2{font-size:1.22rem;margin-top:1.6em}
 .sheet h3{font-size:1.02rem}
@@ -447,9 +454,9 @@ body{background:#e9e6e0;counter-reset:page;font-size:10.5pt;line-height:1.62}
 /* authored chrome — running head at the top, running foot beside the page number */
 .sheet-head{position:absolute;top:12mm;left:18mm;right:18mm;padding-bottom:2.5mm;
   border-bottom:1px solid var(--line);font-family:var(--sans);font-size:7.5pt;
-  letter-spacing:.12em;text-transform:uppercase;color:#a8b0b6}
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
 .sheet-foot{position:absolute;left:18mm;bottom:11mm;font-family:var(--sans);
-  font-size:8.5pt;letter-spacing:.06em;color:#a8b0b6}
+  font-size:8.5pt;letter-spacing:.06em;color:var(--ink-3)}
 section.region{padding:0}
 .page-break{height:0;border-top:1px dashed var(--line-2);margin:2em 0}
 @media print{
@@ -464,15 +471,24 @@ const CSS_DECK = `
 body.deck{background:#0f1519;overflow:hidden}
 #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
 #slideWrap{width:1280px;height:720px;position:relative;transform-origin:center center}
-.slide{position:absolute;inset:0;display:flex;flex-direction:column;
-  justify-content:safe center;gap:.9rem;padding:74px 72px;
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:74px 72px;
   background:var(--paper);color:var(--ink);border-radius:6px;overflow:hidden;
   opacity:0;visibility:hidden;transform:translateY(8px);
   transition:opacity .22s ease,transform .22s ease}
 .slide.active{opacity:1;visibility:visible;transform:none}
+/* content that exceeds the frame scrolls instead of being silently clipped */
+.slide-body{flex:1;min-height:0;display:flex;flex-direction:column;
+  justify-content:safe center;gap:.9rem;overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.slide-body::-webkit-scrollbar{width:6px}
+.slide-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+/* safety net: a plain Markdown image on a slide must not outgrow the frame.
+   More specific rules (figure.hero, .gallery-grid, .col) override this. */
+.slide-body img{max-height:260px;object-fit:cover}
+.slide.overflowing::after{content:'';position:absolute;left:0;right:0;bottom:74px;height:46px;
+  pointer-events:none;background:linear-gradient(to bottom,transparent,var(--paper))}
+.slide.overflowing.dark::after{background:linear-gradient(to bottom,transparent,var(--dark))}
 .slide.dark{background:linear-gradient(160deg,#182430 0%,#101820 100%);color:var(--dark-ink)}
-.slide.dark a{color:#7fd6c8}
-.slide.dark img{background:#1b2932}
 .slide.cover h1{font-size:3rem;letter-spacing:-.035em}
 .slide h1{font-size:2.5rem;margin:0 0 .1rem;letter-spacing:-.03em}
 .slide h2{font-size:1.22rem;margin:.3em 0 .2em}
@@ -500,7 +516,7 @@ body.deck{background:#0f1519;overflow:hidden}
 .slide th,.slide td{padding:.45em .6em}
 /* authored chrome — dim running head/foot inside the slide frame */
 .slide-head,.slide-foot{position:absolute;left:72px;right:72px;font-family:var(--sans);
-  font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);opacity:.75}
+  font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
 .slide-head{top:30px;padding-bottom:9px;border-bottom:1px solid var(--line)}
 .slide-foot{bottom:30px}
 .slide.dark .slide-head{border-bottom-color:var(--dark-line)}
@@ -515,9 +531,17 @@ const DECK_JS = `
 const slides=[...document.querySelectorAll('.slide')];let i=0;
 function show(n){slides[i]&&slides[i].classList.remove('active');i=(n+slides.length)%slides.length;slides[i].classList.add('active');
 document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
-document.getElementById('count').textContent=(i+1)+' / '+slides.length;}
-function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);document.getElementById('slideWrap').style.transform='scale('+s+')';}
+measure();count();}
+function count(){const s=slides[i];
+document.getElementById('count').textContent=(i+1)+' / '+slides.length+(s.classList.contains('overflowing')?' \u2193 more':'');}
+function measure(){slides.forEach(s=>{const b=s.querySelector('.slide-body');if(!b)return;
+s.classList.toggle('overflowing',b.scrollHeight>b.clientHeight+2);});}
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);document.getElementById('slideWrap').style.transform='scale('+s+')';measure();count();}
 addEventListener('resize',fit);fit();show(0);
+/* re-measure once assets settle: images change content height after first layout */
+addEventListener('load',()=>{measure();count();});
+slides.forEach(s=>s.querySelectorAll('img').forEach(im=>{
+if(!im.complete)im.addEventListener('load',()=>{measure();count();},{once:true});}));
 addEventListener('keydown',e=>{if(['ArrowRight',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();show(i+1);}
 if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();show(i-1);}
 if(e.key==='Home')show(0);if(e.key==='End')show(slides.length-1);});
@@ -567,7 +591,7 @@ function render(doc, profile, name) {
         ch.head ? `<div class="slide-head">${esc(ch.head)}</div>` : '',
         ch.foot ? `<div class="slide-foot">${esc(ch.foot)}</div>` : ''
       ].join('');
-      return `<div class="${cls}"${secs ? ` data-seconds="${secs.value}"` : ''}>${ch0}${childrenHtml(s.children)}</div>`;
+      return `<div class="${cls}"${secs ? ` data-seconds="${secs.value}"` : ''}>${ch0}<div class="slide-body">${childrenHtml(s.children)}</div></div>`;
     }).join('\n');
     return shell(title, CSS_DECK, `<div id="stage"><div id="slideWrap">${body}</div></div><div id="bar"></div><div id="count"></div>`, DECK_JS);
   }
