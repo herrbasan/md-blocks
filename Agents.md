@@ -63,14 +63,31 @@ demo/              ← tutorial + example documents (all validate clean via tool
   mara-voss-portfolio.md
   images/
   rendered/        ← generated HTML (page/print/deck profiles) — committed as result examples
-tools/
-  validate.js      ← seed structural validator (zero-dep Node); NOT the reference parser
-  render.js        ← tri-profile renderer (page/print/deck); NOT the reference renderer
+tools/             ← DEMONSTRATION artifacts, not the reference implementation (see below)
+  validate.js      ← illustrative structural validator (zero-dep Node); walks the spec's rules
+  render.js        ← illustrative tri-profile renderer (page/print/deck)
 _Archive/          ← history: proposals A–D, ranking, authoring-test runs + report
   proposal-a-kimi/  proposal-b-astra/  proposal-c-claude/  proposal-d-merged/
   proposal-ranking.md
   test-runs/       ← 9 model-authored documents + REPORT.md (the evidence for the design)
 ```
+
+### Spec repo boundary — what belongs here
+
+This repo is **the spec and its evidence**, plus demonstrations. `tools/` exists to show that the
+format is implementable and to keep the examples honest; it is deliberately *not* the reference
+implementation, and no consumer should depend on its internals.
+
+The real consumers are **separate projects**:
+
+- the **renderer** — the `nui-blocks` component in the nui library (`nui_wc2`), consumed by
+  `nui-markdown`;
+- the **editor** — a `nui` addon.
+
+Anything executable that ships to users lives there, not here. This format was originally developed
+inside `nui_wc2` (`docs/cms-migration/`), so consumer-side work items belong in that repo's issues.
+Because two separate implementations now read this spec, **ambiguity in it is a real bug**: if an
+implementer would have to guess, the spec is wrong, not the implementer.
 
 ## Status and next steps
 
@@ -90,3 +107,5 @@ _Archive/          ← history: proposals A–D, ranking, authoring-test runs + 
 - New examples go in `demo/`; they must validate clean and use only the five directives.
 - The spec is the contract. Renderer presets, frontmatter schemas, and editor UX are **profiles** —
   they live with their consumers, not in this repo.
+- **Edit `md-blocks-spec.md`, not the demonstration tools.** When `tools/` and the spec disagree, the
+  spec wins and the tool is what gets fixed — but never treat a tool's behavior as the definition.

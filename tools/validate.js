@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /*
-MD-Blocks structural validator (seed) — zero-dependency, line-level.
+MD-Blocks structural validator — DEMONSTRATION ARTIFACT. Zero-dependency, line-level.
 Validates demo documents against md-blocks-spec.md v1.
 
-This is NOT the reference parser: no CommonMark tokenization, no tree build,
-no §6 (editor contract) checks. It knows fences, thematic breaks, the directive
-grammar and placement rules, columns/var arity and binding, duplicate ids and
-var names, and JSON attribute values. Directives inside list items or
-blockquotes are caught only when indented — the known approximation.
+It exists to keep the examples honest and to show that the spec's rules (§7) are checkable.
+It is NOT the reference parser: no CommonMark tokenization, no tree build, no §6 (editor
+contract) checks. It knows fences, thematic breaks, the directive grammar and placement
+rules, columns/var arity and binding, duplicate ids and var names, and JSON attribute values.
+Directives inside list items or blockquotes are caught only when indented — a known
+approximation. When this tool and the spec disagree, the spec wins and this gets fixed.
 
 Usage: node tools/validate.js <file.md> [more.md ...]
 Exit:  0 = clean (warnings allowed), 1 = errors.

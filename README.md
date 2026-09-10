@@ -68,12 +68,19 @@ Each section is one slide for a slideshow renderer, and a themed region for a pa
 - **[demo/aurora-deck.md](demo/aurora-deck.md)** — a slideshow deck (one section = one slide, per-slide vars)
 - **[demo/handbook-excerpt.md](demo/handbook-excerpt.md)** — a paged print document (section = page, `preset=page-break`)
 - **[demo/mara-voss-portfolio.md](demo/mara-voss-portfolio.md)** — a portfolio page
-- **[tools/validate.js](tools/validate.js)** — seed structural validator: `node tools/validate.js demo/*.md`
-- **[tools/render.js](tools/render.js)** — tri-profile renderer: `node tools/render.js demo/showcase.md`
-  emits `page` (webpage), `print` (A4), and `deck` (slideshow) HTML into `demo/rendered/`
+
+## Try it
+
+Two small **demonstration** scripts show the format is implementable and keep the examples honest.
+They illustrate the spec; they are not the reference implementation, and the real renderer and editor
+are separate projects.
+
+- `node tools/validate.js demo/*.md` — check the structural rules (spec §7)
+- `node tools/render.js demo/showcase.md` — render `page` (webpage), `print` (A4), or `deck`
+  (slideshow) HTML into `demo/rendered/`; pass a profile to do one: `... showcase.md deck`
 
 ## Status
 
-The spec is adopted; a reference parser/validator is the next milestone. The design history —
-four competing proposals, a blind ranking, and the authoring experiments that decided between them —
-is preserved in [_Archive/](_Archive/).
+The spec is adopted (v1, 2026-09-10). The renderer lives in the nui library as `nui-blocks`; the
+editor is a nui addon. The design history — four competing proposals, a blind ranking, and the
+authoring experiments that decided between them — is preserved in [_Archive/](_Archive/).

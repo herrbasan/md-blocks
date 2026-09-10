@@ -1,13 +1,21 @@
 #!/usr/bin/env node
 /*
-MD-Blocks renderer (seed) — zero-dependency, three profiles from one parse:
+MD-Blocks renderer — DEMONSTRATION ARTIFACT, not the reference implementation.
+
+It exists to prove the format is implementable, to keep the examples honest, and to show
+the two rendering targets (documents/webpages and slideshows) need no format-level special
+casing. The real renderer is the `nui-blocks` component in the nui library (`nui_wc2`),
+consumed by `nui-markdown`; the real editor is a nui addon. Neither lives here.
+
+Three profiles from one parse:
   page  — continuous webpage
   print — A4 paged document (section = page, preset=page-break honored)
   deck  — slideshow (section = slide, keyboard nav, vars drive pacing)
 
-NOT the reference renderer: the Markdown converter covers the CommonMark subset
-the demos use (headings, paragraphs, lists, tables, quotes, fences, rules,
-images, links, inline emphasis/code). Output is self-contained HTML+CSS per file.
+The Markdown converter covers the CommonMark subset the demos use (headings, paragraphs,
+lists, tables, quotes, fences, rules, images, links, inline emphasis/code) — it is NOT a
+conformant CommonMark parser, and no consumer should depend on its internals. If this tool
+and the spec disagree, the spec wins and this tool gets fixed.
 
 Usage:  node tools/render.js <file.md> [profile]   profile: page|print|deck|all (default all)
 Writes: <dir>/rendered/<name>.<profile>.html
