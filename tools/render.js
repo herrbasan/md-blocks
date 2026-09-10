@@ -416,6 +416,12 @@ header.doc .meta{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.1rem 0 0}
 header.doc .meta span{font-family:var(--sans);font-size:.75rem;font-weight:600;letter-spacing:.07em;
   text-transform:uppercase;color:var(--accent);background:var(--accent-soft);
   border-radius:99px;padding:.32em .85em}
+/* authored chrome — frontmatter header/footer, not directives */
+.chrome-top{padding:.95rem max(6vw,calc((100vw - 1040px)/2));border-bottom:1px solid var(--line);
+  font-family:var(--sans);font-size:.72rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3)}
+.chrome-foot{padding:2.5rem max(6vw,calc((100vw - 1040px)/2)) 3.5rem;border-top:1px solid var(--line);
+  font-family:var(--sans);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 `;
 
 const CSS_PRINT = `
@@ -432,11 +438,18 @@ body{background:#e9e6e0;counter-reset:page;font-size:10.5pt;line-height:1.62}
 .sheet img{width:100%;max-height:78mm;object-fit:cover}
 .sheet .columns{gap:1.4rem}
 .sheet table{font-size:.86rem}
-.sheet.dochead{display:flex;flex-direction:column;justify-content:center}
+.sheet.dochead{display:flex;flex-direction:column;justify-content:center;counter-increment:none}
+.sheet.dochead::after{content:none}
 .sheet.dochead h1{font-size:2.7rem;border:0;margin:0 0 .3rem;letter-spacing:-.03em;line-height:1.1}
 .sheet.dochead .meta{font-family:var(--sans);font-size:.82rem;color:var(--ink-3);
   text-transform:uppercase;letter-spacing:.12em;margin:.2rem 0 0}
 .sheet.dochead hr{border:0;border-top:3px solid var(--accent);width:70px;margin:1.6rem 0 0}
+/* authored chrome — running head at the top, running foot beside the page number */
+.sheet-head{position:absolute;top:12mm;left:18mm;right:18mm;padding-bottom:2.5mm;
+  border-bottom:1px solid var(--line);font-family:var(--sans);font-size:7.5pt;
+  letter-spacing:.12em;text-transform:uppercase;color:#a8b0b6}
+.sheet-foot{position:absolute;left:18mm;bottom:11mm;font-family:var(--sans);
+  font-size:8.5pt;letter-spacing:.06em;color:#a8b0b6}
 section.region{padding:0}
 .page-break{height:0;border-top:1px dashed var(--line-2);margin:2em 0}
 @media print{
@@ -452,7 +465,7 @@ body.deck{background:#0f1519;overflow:hidden}
 #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
 #slideWrap{width:1280px;height:720px;position:relative;transform-origin:center center}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;
-  justify-content:safe center;gap:.9rem;padding:56px 72px;
+  justify-content:safe center;gap:.9rem;padding:74px 72px;
   background:var(--paper);color:var(--ink);border-radius:6px;overflow:hidden;
   opacity:0;visibility:hidden;transform:translateY(8px);
   transition:opacity .22s ease,transform .22s ease}
@@ -485,6 +498,13 @@ body.deck{background:#0f1519;overflow:hidden}
 .slide blockquote{margin:.6em 0;font-size:1.5rem;line-height:1.5;border-left-width:3px;max-width:34ch}
 .slide table{font-size:.84rem;margin:.6em 0}
 .slide th,.slide td{padding:.45em .6em}
+/* authored chrome — dim running head/foot inside the slide frame */
+.slide-head,.slide-foot{position:absolute;left:72px;right:72px;font-family:var(--sans);
+  font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);opacity:.75}
+.slide-head{top:30px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.slide-foot{bottom:30px}
+.slide.dark .slide-head{border-bottom-color:var(--dark-line)}
+.slide.dark .slide-head,.slide.dark .slide-foot{color:var(--dark-ink-2)}
 #bar{position:fixed;left:0;bottom:0;height:3px;width:0;transition:width .25s ease;
   background:linear-gradient(90deg,var(--accent),#4fb3a2)}
 #count{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;
@@ -512,27 +532,42 @@ function shell(title, css, body, js) {
 <body${js ? ' class="deck"' : ''}>${body}${js ? `<script>${js}</script>` : ''}</body></html>`;
 }
 
+// Chrome is profile data: plain strings in frontmatter, never a directive.
+// Derived chrome (page numbers, slide counts) is computed here and never authored.
+const chromeOf = fm => ({ head: fm.header ? String(fm.header) : '', foot: fm.footer ? String(fm.footer) : '' });
+
 function render(doc, profile, name) {
   const fm = doc.frontmatter; const title = fm.title || name;
+  const ch = chromeOf(fm);
   if (profile === 'page') {
     const tags = (fm.tags || []).map(t => `<span>${esc(String(t))}</span>`).join('');
+    const topbar = ch.head ? `<div class="chrome-top">${esc(ch.head)}</div>` : '';
     const header = `<header class="doc"><h1>${esc(title)}</h1>${tags ? `<p class="meta">${tags}</p>` : ''}</header>`;
     const body = doc.sections.map(s =>
       `<section class="region ${s.attrs.preset || ''}"${s.attrs.id ? ` id="${esc(s.attrs.id)}"` : ''} data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section>`).join('\n');
-    return shell(title, CSS_PAGE, header + body);
+    const foot = ch.foot ? `<footer class="chrome-foot">${esc(ch.foot)}</footer>` : '';
+    return shell(title, CSS_PAGE, topbar + header + body + foot);
   }
   if (profile === 'print') {
     const meta = [fm.version ? 'v' + fm.version : '', fm.updated || fm.date || '', fm.audience].filter(Boolean).join(' · ');
     const head = `<div class="sheet dochead"><h1>${esc(title)}</h1>${meta ? `<p class="meta">${esc(meta)}</p>` : ''}<hr></div>`;
+    const runHead = ch.head ? `<div class="sheet-head">${esc(ch.head)}</div>` : '';
+    const runFoot = ch.foot ? `<div class="sheet-foot">${esc(ch.foot)}</div>` : '';
     const body = doc.sections.map(s =>
-      `<div class="sheet"><section class="region ${s.attrs.preset || ''}" data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section></div>`).join('\n');
+      `<div class="sheet">${runHead}<section class="region ${s.attrs.preset || ''}" data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section>${runFoot}</div>`).join('\n');
     return shell(title + ' — print', CSS_PRINT, head + body);
   }
   if (profile === 'deck') {
     const body = doc.sections.map((s, n) => {
       const secs = s.vars.find(v => v.name === 'seconds');
-      const cls = ['slide', n === 0 ? 'cover' : '', s.attrs.preset === 'dark' ? 'dark' : ''].filter(Boolean).join(' ');
-      return `<div class="${cls}"${secs ? ` data-seconds="${secs.value}"` : ''}>${childrenHtml(s.children)}</div>`;
+      const cover = n === 0;
+      const cls = ['slide', cover ? 'cover' : '', s.attrs.preset === 'dark' ? 'dark' : ''].filter(Boolean).join(' ');
+      // the title slide carries no running chrome
+      const ch0 = cover ? '' : [
+        ch.head ? `<div class="slide-head">${esc(ch.head)}</div>` : '',
+        ch.foot ? `<div class="slide-foot">${esc(ch.foot)}</div>` : ''
+      ].join('');
+      return `<div class="${cls}"${secs ? ` data-seconds="${secs.value}"` : ''}>${ch0}${childrenHtml(s.children)}</div>`;
     }).join('\n');
     return shell(title, CSS_DECK, `<div id="stage"><div id="slideWrap">${body}</div></div><div id="bar"></div><div id="count"></div>`, DECK_JS);
   }

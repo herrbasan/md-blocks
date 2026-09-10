@@ -101,7 +101,7 @@ body.deck{background:#0f1519;overflow:hidden}
 #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
 #slideWrap{width:1280px;height:720px;position:relative;transform-origin:center center}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;
-  justify-content:safe center;gap:.9rem;padding:56px 72px;
+  justify-content:safe center;gap:.9rem;padding:74px 72px;
   background:var(--paper);color:var(--ink);border-radius:6px;overflow:hidden;
   opacity:0;visibility:hidden;transform:translateY(8px);
   transition:opacity .22s ease,transform .22s ease}
@@ -134,6 +134,13 @@ body.deck{background:#0f1519;overflow:hidden}
 .slide blockquote{margin:.6em 0;font-size:1.5rem;line-height:1.5;border-left-width:3px;max-width:34ch}
 .slide table{font-size:.84rem;margin:.6em 0}
 .slide th,.slide td{padding:.45em .6em}
+/* authored chrome — dim running head/foot inside the slide frame */
+.slide-head,.slide-foot{position:absolute;left:72px;right:72px;font-family:var(--sans);
+  font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);opacity:.75}
+.slide-head{top:30px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.slide-foot{bottom:30px}
+.slide.dark .slide-head{border-bottom-color:var(--dark-line)}
+.slide.dark .slide-head,.slide.dark .slide-foot{color:var(--dark-ink-2)}
 #bar{position:fixed;left:0;bottom:0;height:3px;width:0;transition:width .25s ease;
   background:linear-gradient(90deg,var(--accent),#4fb3a2)}
 #count{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;
@@ -149,7 +156,7 @@ body.deck{background:#0f1519;overflow:hidden}
 <div class="md"><h2>A small brief</h2>
 <ul><li>Welcome visitors without requiring staff assistance.</li><li>Make the product understandable through direct exploration.</li><li>Let interested visitors continue the conversation later.</li></ul>
 <blockquote><p>The interface should explain itself through what the visitor can do next.</p></blockquote></div></div>
-<div class="slide"><div class="md"><h1>A useful split</h1>
+<div class="slide"><div class="slide-head">Aurora Desk · Product Group</div><div class="slide-foot">Aurora Systems · Concept · 2026</div><div class="md"><h1>A useful split</h1>
 <p>The main story gets more space than the supporting facts. On a narrow screen the source order still reads well: story first, facts second.</p></div>
 <div class="columns" data-preset="" style="grid-template-columns:2fr 1fr"><div class="col "><div class="md"><h2>Explore without a script</h2>
 <p>Visitors move directly between features, compare options, and return to an overview whenever they want. The interface supports exploration rather than forcing a single sequence.</p>
@@ -159,11 +166,11 @@ body.deck{background:#0f1519;overflow:hidden}
 <table><thead><tr><th>Detail</th><th>Choice</th></tr></thead><tbody><tr><td>Format</td><td>Interactive kiosk</td></tr><tr><td>Audience</td><td>Showroom visitors</td></tr><tr><td>Input</td><td>Touch</td></tr><tr><td>Year</td><td>2026</td></tr></tbody></table>
 <p><strong>Constraint:</strong> the essential journey must work without sound.</p></div></div></div>
 <div class="md"><p>The column region ended above. Together with the heading and intro paragraph, this trailing paragraph is part of <em>this section's</em> implicit Markdown run — maximal consecutive ordinary nodes, flushed only by the next directive or section break.</p></div></div>
-<div class="slide"><div class="md"><h1>A collection, not three separate images</h1>
+<div class="slide"><div class="slide-head">Aurora Desk · Product Group</div><div class="slide-foot">Aurora Systems · Concept · 2026</div><div class="md"><h1>A collection, not three separate images</h1>
 <p>A block that starts with a list of images is one gallery. An editor reorders its items without touching the surrounding structure; a generic preview shows a list of images.</p></div>
 <figure class="block gallery" data-preset="gallery"><div class="gallery-grid"><figure><img src="../images/hero.jpg" alt="Abstract artwork — hero plate"></figure><figure><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate"></figure><figure><img src="../images/launch.jpg" alt="Abstract artwork — launch plate"></figure><figure><img src="../images/abstract-1.jpg" alt="Abstract artwork — study I"></figure><figure><img src="../images/abstract-2.jpg" alt="Abstract artwork — study II"></figure></div><figcaption><p><strong>Three views of one experience.</strong> This caption belongs to the whole collection; each image keeps its own alternative text.</p></figcaption></figure>
 <div class="md"><p>When one image needs its own caption or crop, give it its own block.</p></div></div>
-<div class="slide dark" data-seconds="12"><div class="md"></div>
+<div class="slide dark" data-seconds="12"><div class="slide-head">Aurora Desk · Product Group</div><div class="slide-foot">Aurora Systems · Concept · 2026</div><div class="md"></div>
 <div class="md"><h1>The visitor journey</h1>
 <p>Three steps, shown as cards in enhanced output. The <code>---</code> above opened this section; the directive on its first line gives it an id and a dark preset, and <code>seconds</code> is this section's own data.</p></div>
 <div class="columns" data-preset="" style="grid-template-columns:1fr 1fr 1fr"><div class="col card"><div class="md"><h2>1. Discover</h2>
@@ -174,7 +181,7 @@ body.deck{background:#0f1519;overflow:hidden}
 <p><img src="../images/launch.jpg" alt="Abstract artwork — launch plate" loading="lazy"></p>
 <p>The visitor leaves with a useful next step rather than an obligation to finish a form.</p></div></div></div>
 <div class="md"><blockquote><p>A good journey has an invitation, room to explore, and a clear way out.</p></blockquote></div></div>
-<div class="slide"><div class="md"><h1>Notes and deliberate boundaries</h1>
+<div class="slide"><div class="slide-head">Aurora Desk · Product Group</div><div class="slide-foot">Aurora Systems · Concept · 2026</div><div class="md"><h1>Notes and deliberate boundaries</h1>
 <h2>A note is still content</h2></div>
 <div class="block callout note" data-preset="note"><h3>Note: content survives the theme</h3>
 <p>The word <strong>Note</strong> is authored here, not injected by the preset. If the styling disappears, the message must not.</p></div>
@@ -200,14 +207,14 @@ const content = 'Markdown, not an executable template';</code></pre>
 <pre><code>
 This paragraph still belongs to the outer block. Only the real close below ends it.</code></pre></div>
 <div class="md"></div></div>
-<div class="slide" data-seconds="20"><div class="md"></div>
+<div class="slide" data-seconds="20"><div class="slide-head">Aurora Desk · Product Group</div><div class="slide-foot">Aurora Systems · Concept · 2026</div><div class="md"></div>
 <div class="md"><h1>Data with an explicit home</h1>
 <p>Named data has exactly two homes. Data about the <strong>document</strong> is frontmatter. Data about <strong>one section</strong> is a <code>var</code> inside that section. This section's <code>seconds</code> is independent of the visitor-journey section's <code>seconds</code>; nothing is inherited, nothing needs a scope flag.</p>
 <h2>A structured section value</h2></div>
 <div class="md"><p>A var and its fence are <strong>one lexical unit</strong> — nothing may come between them, and the editor moves them together.</p>
 <h2>A readable note for a presenter</h2></div>
 <div class="md"></div></div>
-<div class="slide"><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></div></div></div><div id="bar"></div><div id="count"></div><script>
+<div class="slide"><div class="slide-head">Aurora Desk · Product Group</div><div class="slide-foot">Aurora Systems · Concept · 2026</div><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></div></div></div><div id="bar"></div><div id="count"></div><script>
 const slides=[...document.querySelectorAll('.slide')];let i=0;
 function show(n){slides[i]&&slides[i].classList.remove('active');i=(n+slides.length)%slides.length;slides[i].classList.add('active');
 document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';

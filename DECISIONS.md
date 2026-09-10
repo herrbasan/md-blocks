@@ -18,6 +18,7 @@
 | 2026-09-10 | Renamed `spec.md` → `md-blocks-spec.md`; goals + target audience written into README/Agents. |
 | 2026-09-10 | **Directive prefix renamed `bm:` → `mb:`** to match the MD-Blocks name ("md blocks"). Live files only; `_Archive/` keeps `bm:` as history. |
 | 2026-09-10 | **Page breaks decided**: section = page unit for paged renderers; `preset=page-break` empty block for forced breaks; `break=` attribute deferred (spec §9.6). |
+| 2026-09-10 | **Header/footer decided**: no directive. Chrome is profile data (`header`/`footer` frontmatter keys); derived chrome is renderer-only (spec §5, §9.7). |
 
 ## The ranking was biased — and why we trusted the test instead
 
@@ -65,6 +66,7 @@ The right answer was not a winner but a merge.
 | Self-closing single-node block | **Rejected** | A second block form for the common one-node case | Round-2 test: models handle the full open/close form without errors. A second form buys one line at the cost of a second rule. Revisit only if real authoring data says otherwise. |
 | Unknown things | **Kinds/attributes/duplicates = errors; unknown presets = renderer warning** | Silent ignore; everything an error | Typos must fail loud (that's what the `mb:` prefix is for — author comments stay possible). Presets are renderer concerns, so they degrade visibly, not fatally. |
 | Page breaks (print/PDF) | **Section = page unit; `preset=page-break` empty block for forced breaks** | A `mb:page` separator/directive; `break=` attribute (now) | A page is a *viewport* decision (A4 vs Letter vs slide can break differently) — renderer-profile territory, not source structure. Same section-per-viewport law as slides. `break=` (`inside-avoid` etc.) deferred until a renderer asks with evidence (spec §9.6). |
+| Shared header/footer | **Frontmatter `header`/`footer` keys (plain strings)** | `mb:header` / `mb:footer` directives; a `chrome` block | Two kinds of chrome, only one authorable. **Derived** chrome (page numbers, slide counts, progress, running heads from section titles) must stay renderer-computed — authoring "page 3 of 12" is the same redundancy trap as a `count=` on `columns`. **Authored** chrome (legal line, client name) is document data, so frontmatter already holds it, needs no grammar, and stays out of the movable body — an editor must never let a user drag a footer into a section. A directive would import viewport/positioning concerns into the authoring surface, the reason `class`/`style` are absent (spec §5, §9.7). |
 | "No format used at all" | **Informational diagnostic, not an error** | Reject; ignore | Round-1 lesson (weak model wrote format-free Markdown that validated clean). A document with frontmatter but zero directives is valid prose — but the editor must *surface* it, because silence is how empty structure ships (§7 validation table). |
 
 ## The round-trip argument (why B's strictness survived the merge)

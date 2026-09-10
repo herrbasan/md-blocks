@@ -110,11 +110,18 @@ body{background:#e9e6e0;counter-reset:page;font-size:10.5pt;line-height:1.62}
 .sheet img{width:100%;max-height:78mm;object-fit:cover}
 .sheet .columns{gap:1.4rem}
 .sheet table{font-size:.86rem}
-.sheet.dochead{display:flex;flex-direction:column;justify-content:center}
+.sheet.dochead{display:flex;flex-direction:column;justify-content:center;counter-increment:none}
+.sheet.dochead::after{content:none}
 .sheet.dochead h1{font-size:2.7rem;border:0;margin:0 0 .3rem;letter-spacing:-.03em;line-height:1.1}
 .sheet.dochead .meta{font-family:var(--sans);font-size:.82rem;color:var(--ink-3);
   text-transform:uppercase;letter-spacing:.12em;margin:.2rem 0 0}
 .sheet.dochead hr{border:0;border-top:3px solid var(--accent);width:70px;margin:1.6rem 0 0}
+/* authored chrome — running head at the top, running foot beside the page number */
+.sheet-head{position:absolute;top:12mm;left:18mm;right:18mm;padding-bottom:2.5mm;
+  border-bottom:1px solid var(--line);font-family:var(--sans);font-size:7.5pt;
+  letter-spacing:.12em;text-transform:uppercase;color:#a8b0b6}
+.sheet-foot{position:absolute;left:18mm;bottom:11mm;font-family:var(--sans);
+  font-size:8.5pt;letter-spacing:.06em;color:#a8b0b6}
 section.region{padding:0}
 .page-break{height:0;border-top:1px dashed var(--line-2);margin:2em 0}
 @media print{
@@ -124,7 +131,7 @@ section.region{padding:0}
   .page-break{break-after:page;height:0;border:none;margin:0}
 }
 </style></head>
-<body><div class="sheet dochead"><h1>Aurora Desk</h1><hr></div><div class="sheet"><section class="region " data-preset=""><div class="md"><h1>Aurora Desk</h1></div>
+<body><div class="sheet dochead"><h1>Aurora Desk</h1><hr></div><div class="sheet"><div class="sheet-head">Aurora Desk · Product Group</div><section class="region " data-preset=""><div class="md"><h1>Aurora Desk</h1></div>
 <div class="block lead" data-preset="lead"><p>A showroom experience that lets visitors explore at their own pace. One screen, a clear invitation, and enough room to be curious.</p>
 <p>This page is also a live sample of the format: every block boundary, image, and piece of data you see is authored in plain Markdown.</p></div>
 <div class="md"><p>In GitHub or VS Code this reads as an ordinary project page with horizontal rules between its parts. In the enhanced renderer each rule is a section boundary, and the same source gains columns, cards, a gallery, and media players. Document-level data — title, tags, slideshow defaults — lives in the frontmatter above.</p></div>
@@ -133,8 +140,8 @@ section.region{padding:0}
 <figure class="block hero" data-preset="hero"><img src="../images/hero.jpg" alt="" style="object-position:50% 30%"><figcaption><p><strong>Stamped by the editor:</strong> <code>kind=image</code> and <code>id=hero-stamped</code> were written by the tool, not the author.</p></figcaption></figure>
 <div class="md"><h2>A small brief</h2>
 <ul><li>Welcome visitors without requiring staff assistance.</li><li>Make the product understandable through direct exploration.</li><li>Let interested visitors continue the conversation later.</li></ul>
-<blockquote><p>The interface should explain itself through what the visitor can do next.</p></blockquote></div></section></div>
-<div class="sheet"><section class="region " data-preset=""><div class="md"><h1>A useful split</h1>
+<blockquote><p>The interface should explain itself through what the visitor can do next.</p></blockquote></div></section><div class="sheet-foot">Aurora Systems · Concept · 2026</div></div>
+<div class="sheet"><div class="sheet-head">Aurora Desk · Product Group</div><section class="region " data-preset=""><div class="md"><h1>A useful split</h1>
 <p>The main story gets more space than the supporting facts. On a narrow screen the source order still reads well: story first, facts second.</p></div>
 <div class="columns" data-preset="" style="grid-template-columns:2fr 1fr"><div class="col "><div class="md"><h2>Explore without a script</h2>
 <p>Visitors move directly between features, compare options, and return to an overview whenever they want. The interface supports exploration rather than forcing a single sequence.</p>
@@ -143,12 +150,12 @@ section.region{padding:0}
 <p>The image above is plain Markdown — no directive, no block. It belongs to this column's implicit Markdown run (§6.1): the same chunk boundaries on every parse, in every tool.</p></div></div><div class="col card"><div class="md"><h2>At a glance</h2>
 <table><thead><tr><th>Detail</th><th>Choice</th></tr></thead><tbody><tr><td>Format</td><td>Interactive kiosk</td></tr><tr><td>Audience</td><td>Showroom visitors</td></tr><tr><td>Input</td><td>Touch</td></tr><tr><td>Year</td><td>2026</td></tr></tbody></table>
 <p><strong>Constraint:</strong> the essential journey must work without sound.</p></div></div></div>
-<div class="md"><p>The column region ended above. Together with the heading and intro paragraph, this trailing paragraph is part of <em>this section's</em> implicit Markdown run — maximal consecutive ordinary nodes, flushed only by the next directive or section break.</p></div></section></div>
-<div class="sheet"><section class="region " data-preset=""><div class="md"><h1>A collection, not three separate images</h1>
+<div class="md"><p>The column region ended above. Together with the heading and intro paragraph, this trailing paragraph is part of <em>this section's</em> implicit Markdown run — maximal consecutive ordinary nodes, flushed only by the next directive or section break.</p></div></section><div class="sheet-foot">Aurora Systems · Concept · 2026</div></div>
+<div class="sheet"><div class="sheet-head">Aurora Desk · Product Group</div><section class="region " data-preset=""><div class="md"><h1>A collection, not three separate images</h1>
 <p>A block that starts with a list of images is one gallery. An editor reorders its items without touching the surrounding structure; a generic preview shows a list of images.</p></div>
 <figure class="block gallery" data-preset="gallery"><div class="gallery-grid"><figure><img src="../images/hero.jpg" alt="Abstract artwork — hero plate"></figure><figure><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate"></figure><figure><img src="../images/launch.jpg" alt="Abstract artwork — launch plate"></figure><figure><img src="../images/abstract-1.jpg" alt="Abstract artwork — study I"></figure><figure><img src="../images/abstract-2.jpg" alt="Abstract artwork — study II"></figure></div><figcaption><p><strong>Three views of one experience.</strong> This caption belongs to the whole collection; each image keeps its own alternative text.</p></figcaption></figure>
-<div class="md"><p>When one image needs its own caption or crop, give it its own block.</p></div></section></div>
-<div class="sheet"><section class="region dark" data-preset="dark"><div class="md"></div>
+<div class="md"><p>When one image needs its own caption or crop, give it its own block.</p></div></section><div class="sheet-foot">Aurora Systems · Concept · 2026</div></div>
+<div class="sheet"><div class="sheet-head">Aurora Desk · Product Group</div><section class="region dark" data-preset="dark"><div class="md"></div>
 <div class="md"><h1>The visitor journey</h1>
 <p>Three steps, shown as cards in enhanced output. The <code>---</code> above opened this section; the directive on its first line gives it an id and a dark preset, and <code>seconds</code> is this section's own data.</p></div>
 <div class="columns" data-preset="" style="grid-template-columns:1fr 1fr 1fr"><div class="col card"><div class="md"><h2>1. Discover</h2>
@@ -158,8 +165,8 @@ section.region{padding:0}
 <p>Details appear when they are useful. The overview stays one obvious action away.</p></div></div><div class="col card"><div class="md"><h2>3. Continue</h2>
 <p><img src="../images/launch.jpg" alt="Abstract artwork — launch plate" loading="lazy"></p>
 <p>The visitor leaves with a useful next step rather than an obligation to finish a form.</p></div></div></div>
-<div class="md"><blockquote><p>A good journey has an invitation, room to explore, and a clear way out.</p></blockquote></div></section></div>
-<div class="sheet"><section class="region " data-preset=""><div class="md"><h1>Notes and deliberate boundaries</h1>
+<div class="md"><blockquote><p>A good journey has an invitation, room to explore, and a clear way out.</p></blockquote></div></section><div class="sheet-foot">Aurora Systems · Concept · 2026</div></div>
+<div class="sheet"><div class="sheet-head">Aurora Desk · Product Group</div><section class="region " data-preset=""><div class="md"><h1>Notes and deliberate boundaries</h1>
 <h2>A note is still content</h2></div>
 <div class="block callout note" data-preset="note"><h3>Note: content survives the theme</h3>
 <p>The word <strong>Note</strong> is authored here, not injected by the preset. If the styling disappears, the message must not.</p></div>
@@ -184,12 +191,12 @@ const content = 'Markdown, not an executable template';</code></pre>
 <p>&lt;!-- mb:/block --&gt;</p>
 <pre><code>
 This paragraph still belongs to the outer block. Only the real close below ends it.</code></pre></div>
-<div class="md"></div></section></div>
-<div class="sheet"><section class="region " data-preset=""><div class="md"></div>
+<div class="md"></div></section><div class="sheet-foot">Aurora Systems · Concept · 2026</div></div>
+<div class="sheet"><div class="sheet-head">Aurora Desk · Product Group</div><section class="region " data-preset=""><div class="md"></div>
 <div class="md"><h1>Data with an explicit home</h1>
 <p>Named data has exactly two homes. Data about the <strong>document</strong> is frontmatter. Data about <strong>one section</strong> is a <code>var</code> inside that section. This section's <code>seconds</code> is independent of the visitor-journey section's <code>seconds</code>; nothing is inherited, nothing needs a scope flag.</p>
 <h2>A structured section value</h2></div>
 <div class="md"><p>A var and its fence are <strong>one lexical unit</strong> — nothing may come between them, and the editor moves them together.</p>
 <h2>A readable note for a presenter</h2></div>
-<div class="md"></div></section></div>
-<div class="sheet"><section class="region " data-preset=""><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></section></div></body></html>
+<div class="md"></div></section><div class="sheet-foot">Aurora Systems · Concept · 2026</div></div>
+<div class="sheet"><div class="sheet-head">Aurora Desk · Product Group</div><section class="region " data-preset=""><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></section><div class="sheet-foot">Aurora Systems · Concept · 2026</div></div></body></html>

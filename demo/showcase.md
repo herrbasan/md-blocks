@@ -5,6 +5,8 @@ year: 2026
 tags: [Product, Interactive, Markdown]
 cover: images/hero.jpg
 status: concept
+header: Aurora Desk · Product Group
+footer: Aurora Systems · Concept · 2026
 slideshow:
   autoplay: false
   loop: false

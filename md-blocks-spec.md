@@ -16,6 +16,8 @@
 ---
 title: Aurora Desk                      ← YAML frontmatter = document metadata + document data
 year: 2026
+header: Aurora Desk · Product Group     ← optional profile chrome (running head/foot), §5
+footer: Aurora Systems · Concept · 2026
 ---
 
 # Any heading is content
@@ -274,6 +276,27 @@ Unknown preset: valid syntax, visible renderer diagnostic, content rendered plai
 kind* or *attribute*: parse error. Composite editor palette entries are templates that expand into
 these primitives; they are not vocabulary.
 
+### Frontmatter: stored, not interpreted
+
+The format stores frontmatter and never interprets it — keys belong to the application profile, and an
+unknown key is ignored, never an error. One convention is worth fixing anyway, because profiles must
+agree on a spelling before they can interoperate:
+
+| Key | Meaning |
+|---|---|
+| `header` | Running head — chrome text for the top of a page, sheet, or slide |
+| `footer` | Running foot — chrome text for the bottom |
+
+Both are plain strings, rendered by the profile in whatever way suits its medium. Authoring them as
+frontmatter rather than as content is the point: chrome is not part of the movable document body, so an
+editor must never let a user drag a footer into the middle of a section.
+
+**Derived chrome is never authored.** Page numbers, slide counts, progress bars, and section running
+titles are computed by the renderer — see §4.1, where a section's title is "a display convention, not a
+rule". A document that declares *page 3 of 12* has made the author responsible for keeping it true: the
+same redundancy trap as a `count=` on `columns`. Position and viewport are renderer concerns, which is
+why there is no `header`/`footer` directive, just as there is no `class` or `style`.
+
 ---
 
 ## 6. The editor contract (what distinguishes MD-Blocks)
@@ -391,6 +414,10 @@ source parsed. Comments and vars must never store secrets in public documents.
    renderers treat **one section = one page** (the same section-per-viewport law as slides), and an
    explicit forced break is an empty `mb:block preset=page-break` (§5). A `break=` attribute
    (`inside-avoid` etc., mapping to CSS fragmentation) is deferred until a renderer needs it with evidence.
+7. **Shared header/footer.** Decided 2026-09-10: no directive. Chrome is profile data — `header`/`footer`
+   frontmatter keys (plain strings) with a renderer convention (§5); derived chrome (page/slide numbers,
+   running heads from section titles) is renderer-only and never authored. Rejected: `mb:header` /
+   `mb:footer` directives, which would put viewport and positioning concerns into the authoring surface.
 
 ## 10. Conformance cases (to turn into fixtures)
 

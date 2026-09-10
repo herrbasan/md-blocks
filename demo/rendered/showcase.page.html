@@ -105,8 +105,14 @@ header.doc .meta{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.1rem 0 0}
 header.doc .meta span{font-family:var(--sans);font-size:.75rem;font-weight:600;letter-spacing:.07em;
   text-transform:uppercase;color:var(--accent);background:var(--accent-soft);
   border-radius:99px;padding:.32em .85em}
+/* authored chrome — frontmatter header/footer, not directives */
+.chrome-top{padding:.95rem max(6vw,calc((100vw - 1040px)/2));border-bottom:1px solid var(--line);
+  font-family:var(--sans);font-size:.72rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3)}
+.chrome-foot{padding:2.5rem max(6vw,calc((100vw - 1040px)/2)) 3.5rem;border-top:1px solid var(--line);
+  font-family:var(--sans);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 </style></head>
-<body><header class="doc"><h1>Aurora Desk</h1><p class="meta"><span>Product</span><span>Interactive</span><span>Markdown</span></p></header><section class="region " data-preset=""><div class="md"><h1>Aurora Desk</h1></div>
+<body><div class="chrome-top">Aurora Desk · Product Group</div><header class="doc"><h1>Aurora Desk</h1><p class="meta"><span>Product</span><span>Interactive</span><span>Markdown</span></p></header><section class="region " data-preset=""><div class="md"><h1>Aurora Desk</h1></div>
 <div class="block lead" data-preset="lead"><p>A showroom experience that lets visitors explore at their own pace. One screen, a clear invitation, and enough room to be curious.</p>
 <p>This page is also a live sample of the format: every block boundary, image, and piece of data you see is authored in plain Markdown.</p></div>
 <div class="md"><p>In GitHub or VS Code this reads as an ordinary project page with horizontal rules between its parts. In the enhanced renderer each rule is a section boundary, and the same source gains columns, cards, a gallery, and media players. Document-level data — title, tags, slideshow defaults — lives in the frontmatter above.</p></div>
@@ -174,4 +180,4 @@ This paragraph still belongs to the outer block. Only the real close below ends 
 <div class="md"><p>A var and its fence are <strong>one lexical unit</strong> — nothing may come between them, and the editor moves them together.</p>
 <h2>A readable note for a presenter</h2></div>
 <div class="md"></div></section>
-<section class="region " id="colophon" data-preset=""><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></section></body></html>
+<section class="region " id="colophon" data-preset=""><div class="md"><p>This closing section has no heading, which the <code>---</code> convention allows for free. One themed section (<strong>The visitor journey</strong>); the next <code>---</code> resets it. Every heading, image, link, and caption is ordinary Markdown; document data is frontmatter; section data is <code>var</code>; structure is five directives and one rule.</p></div></section><footer class="chrome-foot">Aurora Systems · Concept · 2026</footer></body></html>
