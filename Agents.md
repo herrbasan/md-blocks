@@ -5,6 +5,8 @@
 > guessable from this one document.
 > **Before changing anything:** [DECISIONS.md](DECISIONS.md) — why the format looks the way it does;
 > most temptations were already considered, and some were measured.
+> **For LLM instruction sets:** [BRIEF.md](BRIEF.md) — the drastically reduced authoring brief
+> (one example + validity rules), meant to be embedded into system prompts and agent directives.
 
 ## What this project is
 
@@ -55,6 +57,7 @@ blocks/columns *are* the layout primitives. Renderers are consumers, not spec co
 
 ```text
 md-blocks-spec.md  ← the format spec (v1, adopted 2026-09-10) — THE document
+BRIEF.md           ← the reduced authoring brief for LLM instruction sets (synced with Agents_Prime_Chat.md)
 DECISIONS.md       ← the decision record: why the format looks this way (read before editing md-blocks-spec.md)
 demo/              ← tutorial + example documents (all validate clean via tools/validate.js)
   showcase.md      ← the tutorial; exercises every construct

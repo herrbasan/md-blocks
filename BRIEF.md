@@ -1,0 +1,69 @@
+# MD-Blocks — Authoring Brief
+
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.2, locked) — read it when you need depth;
+[demo/showcase.md](demo/showcase.md) is the tutorial.
+
+One example with every feature:
+
+````md
+---
+title: Aurora Desk                    ← YAML frontmatter = document metadata + document data
+header: Aurora Desk · Product Group   ← optional chrome (running head/foot)
+footer: Aurora Systems · 2026
+---
+
+# Any heading is content
+
+Plain Markdown needs no markup. The file starts inside section 1.
+
+<!-- mb:block preset=card:note -->     ← block: a movable, presentable unit
+Anything Markdown — paragraphs, lists, tables, code.
+<!-- mb:/block -->
+
+<!-- mb:block preset=image:hero -->    ← first node is an image → media block
+![Alt text](images/hero.svg)
+
+Text after the image is its caption.
+<!-- mb:/block -->
+
+---                                    ← root-level rule = next section (= one slide)
+
+<!-- mb:section preset=band -->        ← optional: annotate the section just opened
+
+<!-- mb:columns weights=[2,1] -->      ← column count = number of col markers
+<!-- mb:col -->
+Left column.
+<!-- mb:col preset=card -->
+Right column.
+<!-- mb:/columns -->
+
+<!-- mb:var name=slideshow -->         ← named data for this section
+```json
+{ "loop": false, "secondsPerSlide": 12 }
+```
+````
+
+Rules that keep you valid:
+
+- Five directives, each an HTML comment alone on its line at column 0: `mb:section`,
+  `mb:block`…`mb:/block`, `mb:columns`/`mb:col`…`mb:/columns`, `mb:var`. Any other comment is ignored.
+- Attributes on the opening line only: `key=word`, `key="with spaces"`, `key=12`, `key=[2,1]`
+  (strict JSON). Shared optional attributes: `id`, `label`, `preset`. No `class` / `style` / `width` —
+  presentation lives in the renderer's preset table.
+- **Blocks** hold Markdown only — no nested blocks, columns, or vars — and are always closed.
+  A `---` inside a block is an `<hr>`, not a section break.
+- **Media blocks:** a block whose first node is a single image (or a flat list of images, or a link
+  ending in a media extension) is media; everything after that node is the caption. `kind`
+  (`image` / `video` / `audio` / `file`) is inferred when omitted. An image later in a block is just
+  an inline image.
+- **Columns:** number of `col` markers = column count (min 2); `weights` must have exactly that many
+  entries. Columns hold Markdown and blocks, never sections or vars.
+- **Vars:** section-level named data — either `value=` inline or one fenced `json` / `text` block
+  immediately following (blank lines only between var and fence). Document-level data goes in
+  frontmatter.
+- **Sections:** root-level `---` separates them; surround it with blank lines (directly under a
+  paragraph line it becomes a setext H2). Each section is one slide for a slideshow renderer.
+- `preset` is a semantic hint: `family[:modifier[:variant]]` — e.g. `card:warning`,
+  `image:hero:bleed`, `gallery:mosaic`. Unknown presets render plain with a warning, never an error.
+- When in doubt, author plain Markdown — unannotated content is valid. Add directives only for
+  structure the layout needs.
