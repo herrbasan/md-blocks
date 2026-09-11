@@ -36,7 +36,7 @@ Text after the image is its caption.
 
 ---                                      ← a root-level rule starts the next section (= slide)
 
-<!-- mb:section preset=dark -->          ← optional: annotate the section just opened
+<!-- mb:section preset=band -->          ← optional: annotate the section just opened
 
 <!-- mb:columns weights=[2,1] -->        ← columns: count = number of col markers
 <!-- mb:col -->
@@ -140,7 +140,7 @@ escape the comment.
 |---|---|---|
 | `id` | identifier | Optional stable identity, unique per file. Anchor target in enhanced output. Editor-stamped when absent (§6.3). |
 | `label` | string | Editor-only name. Never rendered, never a substitute for content. |
-| `preset` | identifier | Single semantic presentation name, interpreted by a renderer profile. |
+| `preset` | token (colon-delimited: `family[:modifier[:variant]]`) | Semantic presentation hint interpreted by a renderer profile (§5). Bare token or quoted string. |
 
 No `class`, `style`, `width`, `color`. Presentation lives in the renderer's preset table.
 
@@ -159,7 +159,7 @@ nothing else. Canonical position: first line of the section. Elsewhere it still 
 the writer moves it to the canonical spot on save. At most one per section.
 
 - An empty section (two consecutive `---`, or a trailing `---`) is legal and preserved.
-- Sections do not inherit anything. A section after a `preset=dark` section is plain unless annotated.
+- Sections do not inherit anything. A section after a `preset=band` section is plain unless annotated.
 - No section directive is ever required. A document with no `---` and no `mb:section` is one section.
 - Each section is one slide for a slideshow renderer; a themed region for a page renderer.
 
@@ -182,6 +182,31 @@ Blank lines are content, not terminators. A `---` in here is an `<hr>`, not a se
 - Unannotated Markdown outside any block is chunked by the **deterministic rule in §6.1** — identical on
   every parse, in every tool, forever. The moment a chunk gains an id, label, preset, or is dragged as a
   unit, the editor writes a `block` around it.
+
+#### Block-level asset attributes
+
+A block may carry an **asset reference in the directive** instead of in its body. This is for decorative
+assets that belong to the presentation, not to the prose: an icon badge, a logo, a mark. Keeping them in
+the attribute is what makes generic previews clean — the whole directive vanishes in GitHub or VS Code,
+leaving readable prose instead of a stray image line.
+
+| Attribute | Applies to | Meaning |
+|---|---|---|
+| `icon` | `preset=image:icon` | Media destination for the block's icon badge. Relative path or `http(s)` URL. |
+| `alt` | `preset=image:icon` | Accessible description for the icon. Empty is legal for purely decorative marks. |
+
+Destinations follow the same trust boundary as inline media (§8): relative paths or `http(s)` only;
+executable schemes, protocol-relative URLs, and drive paths are refused.
+
+```md
+<!-- mb:block preset=image:icon icon=images/badge.svg alt="Native runtime" -->
+### Zero Build Overhead
+Native web components execute directly in modern browsers.
+<!-- mb:/block -->
+```
+
+The body is the block's text; the icon is presentation. A renderer that does not implement `image:icon`
+renders the body as ordinary Markdown and drops the attribute, so the block degrades to clean prose.
 
 #### Media blocks
 
@@ -252,29 +277,46 @@ Markdown and blocks.
   section is a different var.
 - Section level only (not inside `block` or `columns`). Position within the section is preserved but
   carries no meaning.
-- Vars are data, never content. A fenced payload stays visible in generic previews — by design.
+- Vars are data, never content. A fenced payload stays visible in generic previews — by design. A
+  general display renderer may surface the var (its name beside its value) instead of dropping it:
+  dropping it would make that renderer lossier than a generic preview, which cannot see the directive
+  at all and quietly shows the fenced payload as an ordinary code block. A collection renderer reads
+  the var from the tree and renders nothing.
 
 ---
 
-## 5. Presets
+## 5. Presets & Semantic HTML Mapping
 
-`preset` names a semantic intent; a renderer profile maps names to treatment. The format only preserves
-the name. Suggested starter profile (used by the showcase):
+`preset` names a semantic presentation intent using colon-separated segments: `family[:modifier[:variant]]`
+(e.g. `card:warning`, `image:hero`, `image:left:small`, `gallery:featured`). The format stores and preserves
+the authored token; a renderer profile maps the family and optional modifier/variant to layout and styling.
 
-| Preset | On | Intent |
-|---|---|---|
-| `lead` | block | Opening emphasis |
-| `note`, `warning` | block | Contextual callout — the label word is *authored in the Markdown*, not injected |
-| `card` | block, col | Grouped with a visible boundary |
-| `cta` | block | Emphasize the authored link(s); never invent labels |
-| `hero` | media block | Prominent image |
-| `gallery` | media block (list) | Grid/carousel of the authored sequence |
-| `dark` | section | Contrasting slide/section theme |
-| `page-break` | block (empty) | Forced break for paged renderers (print/PDF) — profile-defined; ignored (with warning) by screen renderers |
+### Graceful degradation contract
+1. **Full profile:** knows `family[:modifier[:variant]]` — applies the exact variant and size.
+2. **Standard profile:** knows `family:modifier` — ignores optional `:variant` and applies standard modifier defaults.
+3. **Base profile:** knows only `family` — discards all trailing segments and applies the family default.
+4. **Generic preview (GitHub / VS Code / CommonMark):** ignores directives completely — renders valid, clean CommonMark.
+5. **Unknown preset:** valid syntax, visible renderer diagnostic, content rendered plain.
 
-Unknown preset: valid syntax, visible renderer diagnostic, content rendered plain. Unknown *directive
-kind* or *attribute*: parse error. Composite editor palette entries are templates that expand into
-these primitives; they are not vocabulary.
+Renderers should strive to emit **native semantic HTML5 elements** (`<section>`, `<figure>`,
+`<aside>`, `<article>`, `<nav>`) so that documents are accessible and structured even without custom CSS.
+
+### 5.1 Starter vocabulary & semantic mapping
+
+| Family | Common Modifiers | Authored Markdown Shape | Semantic HTML5 Output | Renderer Intent |
+|---|---|---|---|---|
+| `card` | `note`<br>`warning`<br>`stat`<br>`quote`<br>`good`<br>`danger` | Paragraphs, headings, lists | Callout: `<aside role="note">`<br>Article: `<article>`<br>Quote: `<aside>` | Self-contained framed container.<br>`:note`, `:warning` apply contextual tint/border.<br>`:stat` = centered large numeric KPI callout.<br>`:quote` = editorial epigraph with attribution.<br>`:good`, `:danger` = recommendations / comparison cards. |
+| `image` | `hero[:bleed]`<br>`contain`<br>`icon`<br>`left[:small]`<br>`right[:small]` | Single image + caption | `<figure class="media-image">`<br>`  <img ...>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Single media figure.<br>`:hero` = prominent banner (optional `:bleed` expands flush edge-to-edge).<br>`:contain` = fit within bounds without cropping.<br>`:icon` = compact badge sized to text height (feature callout row).<br>`:left`, `:right` = float media and wrap subsequent text prose around it (optional `:small` for compact ~25% portrait/badge). |
+| `gallery` | `featured`<br>`mosaic`<br>`row`<br>`masonry` | Image list + caption | `<figure class="media-gallery">`<br>`  <ul class="items">...</ul>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Collection of media items.<br>Default = responsive thumbnail grid.<br>`:featured` = first image prominent/lead + sub-grid.<br>`:mosaic` = asymmetric editorial layout (1 large + 2 stacked).<br>`:row` = single full-width row split evenly.<br>`:masonry` = multi-column vertical waterfall. |
+| `link` | `cta`<br>`download` | Single link or link list | `<nav class="actions">`<br>`  <a href="..." role="button">...</a>`<br>`</nav>` | Action item.<br>`:cta` = primary call-to-action button.<br>`:download` = file badge with download affordance. |
+| `list` | `steps`<br>`features` | Ordered or unordered list | `<ol class="steps">` or `<ul class="features">` | Enhanced list presentation.<br>`:steps` = numbered timeline / connected process.<br>`:features` = checkmark feature grid. |
+| `table` | `clean`<br>`specs`<br>`fit` | GFM Table | `<table class="table-[clean|specs|fit]">` | Tabular data presentation.<br>`:clean` = zero shades/backgrounds, subtle horizontal row dividers (clean list).<br>`:specs` = 2-column key/value sheet (header hidden, muted label column).<br>`:fit` = columns sized strictly by data cells; long header labels clip to fit and reveal full text via hover tooltip. |
+| `section` | `band[:bleed]`<br>`cover` | (Applied to `mb:section`) | `<section class="band">` | A section on a different surface from the page — a full-width banded region. The name describes the shape, never a colour: the profile decides the treatment (a subtle shade shift in one renderer, a fully inverted theme in another). Optional `:bleed` expands the surface flush to the container edges. |
+| `page-break` | *(none)* | `mb:block` (empty) | Forced break for paged renderers (print/PDF) — profile-defined; ignored (with warning) by screen renderers. |
+
+Optional `:bleed` is an orthogonal spatial modifier for blocks and sections that expands them horizontally to the boundary of the surrounding document container, cancelling parent container padding. Content inside retains appropriate safe margins.
+
+Unknown *directive kind* or *attribute*: parse error. Composite editor palette entries are templates that expand into these primitives; they are not vocabulary.
 
 ### Frontmatter: stored, not interpreted
 

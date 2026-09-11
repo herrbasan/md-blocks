@@ -117,13 +117,13 @@ When one image needs its own caption or crop, give it its own block.
 
 ---
 
-<!-- mb:section id=visitor-journey preset=dark label="Visitor journey slide" -->
+<!-- mb:section id=visitor-journey preset=band label="Visitor journey slide" -->
 <!-- mb:var name=seconds value=12 -->
 
 # The visitor journey
 
 Three steps, shown as cards in enhanced output. The `---` above opened this section; the directive on
-its first line gives it an id and a dark preset, and `seconds` is this section's own data.
+its first line gives it an id and a band preset, and `seconds` is this section's own data.
 
 <!-- mb:columns id=journey-steps label="Journey cards" -->
 <!-- mb:col preset=card -->

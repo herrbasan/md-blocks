@@ -398,28 +398,30 @@ figure.gallery .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,
 section.region{padding:4.5rem max(6vw,calc((100vw - 1040px)/2))}
 section.region + section.region{border-top:1px solid var(--line)}
 
-/* Dark theme — ONE scope covering both containers a renderer may mark dark:
-   section.region.dark (page/print) and .slide.dark (deck). Every inverting rule
+/* Band theme — ONE scope covering both containers a renderer may mark as a band:
+   section.region.band (page/print) and .slide.band (deck). Every inverting rule
    must live here: scoping these to the section alone left the deck rendering
-   light text on white cards and code (contrast 1.17:1 — invisible). */
-.dark{background:var(--dark);color:var(--dark-ink)}
-.dark a{color:#7fd6c8}
-.dark .block.lead{color:var(--dark-ink-2)}
-.dark blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
-.dark .block.callout{background:#1b2932;border-left-color:#3f8f83}
-.dark .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
-.dark .block.callout h3{color:#7fd6c8}
-.dark .block.callout.warning h3{color:#e0a862}
-.dark .block.card,.dark .col.card{background:var(--dark-2);border-color:var(--dark-line);box-shadow:none}
-.dark .block.cta{background:#18222a;border-color:var(--dark-line);color:var(--dark-ink)}
-.dark hr{border-top-color:var(--dark-line)}
-.dark th,.dark td{border-bottom-color:var(--dark-line)}
-.dark thead th{color:var(--dark-ink-2);border-bottom-color:#3a4a55}
-.dark tbody tr:nth-child(even){background:#18222a}
-.dark code{background:#1b2932;border-color:var(--dark-line);color:var(--dark-ink)}
-.dark pre{background:#0f1519;border:1px solid var(--dark-line)}
-.dark figcaption{color:var(--dark-ink-2)}
-.dark img{background:#1b2932}
+   light text on white cards and code (contrast 1.17:1 — invisible).
+   This profile treats a band as a fully inverted theme; that is a profile choice,
+   not a format rule — another renderer maps the same name to a subtle shade. */
+.band{background:var(--dark);color:var(--dark-ink)}
+.band a{color:#7fd6c8}
+.band .block.lead{color:var(--dark-ink-2)}
+.band blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
+.band .block.callout{background:#1b2932;border-left-color:#3f8f83}
+.band .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
+.band .block.callout h3{color:#7fd6c8}
+.band .block.callout.warning h3{color:#e0a862}
+.band .block.card,.band .col.card{background:var(--dark-2);border-color:var(--dark-line);box-shadow:none}
+.band .block.cta{background:#18222a;border-color:var(--dark-line);color:var(--dark-ink)}
+.band hr{border-top-color:var(--dark-line)}
+.band th,.band td{border-bottom-color:var(--dark-line)}
+.band thead th{color:var(--dark-ink-2);border-bottom-color:#3a4a55}
+.band tbody tr:nth-child(even){background:#18222a}
+.band code{background:#1b2932;border-color:var(--dark-line);color:var(--dark-ink)}
+.band pre{background:#0f1519;border:1px solid var(--dark-line)}
+.band figcaption{color:var(--dark-ink-2)}
+.band img{background:#1b2932}
 `;
 
 const CSS_PAGE = `
@@ -495,8 +497,8 @@ body.deck{background:#0f1519;overflow:hidden}
 .slide-body img{max-height:260px;object-fit:cover}
 .slide.overflowing::after{content:'';position:absolute;left:0;right:0;bottom:74px;height:46px;
   pointer-events:none;background:linear-gradient(to bottom,transparent,var(--paper))}
-.slide.overflowing.dark::after{background:linear-gradient(to bottom,transparent,var(--dark))}
-.slide.dark{background:linear-gradient(160deg,#182430 0%,#101820 100%);color:var(--dark-ink)}
+.slide.overflowing.band::after{background:linear-gradient(to bottom,transparent,var(--dark))}
+.slide.band{background:linear-gradient(160deg,#182430 0%,#101820 100%);color:var(--dark-ink)}
 .slide.cover h1{font-size:3rem;letter-spacing:-.035em}
 .slide h1{font-size:2.5rem;margin:0 0 .1rem;letter-spacing:-.03em}
 .slide h2{font-size:1.22rem;margin:.3em 0 .2em}
@@ -527,8 +529,8 @@ body.deck{background:#0f1519;overflow:hidden}
   font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
 .slide-head{top:30px;padding-bottom:9px;border-bottom:1px solid var(--line)}
 .slide-foot{bottom:30px}
-.slide.dark .slide-head{border-bottom-color:var(--dark-line)}
-.slide.dark .slide-head,.slide.dark .slide-foot{color:var(--dark-ink-2)}
+.slide.band .slide-head{border-bottom-color:var(--dark-line)}
+.slide.band .slide-head,.slide.band .slide-foot{color:var(--dark-ink-2)}
 #bar{position:fixed;left:0;bottom:0;height:3px;width:0;transition:width .25s ease;
   background:linear-gradient(90deg,var(--accent),#4fb3a2)}
 #count{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;
@@ -593,7 +595,7 @@ function render(doc, profile, name) {
     const body = doc.sections.map((s, n) => {
       const secs = s.vars.find(v => v.name === 'seconds');
       const cover = n === 0;
-      const cls = ['slide', cover ? 'cover' : '', s.attrs.preset === 'dark' ? 'dark' : ''].filter(Boolean).join(' ');
+      const cls = ['slide', cover ? 'cover' : '', s.attrs.preset === 'band' ? 'band' : ''].filter(Boolean).join(' ');
       // the title slide carries no running chrome
       const ch0 = cover ? '' : [
         ch.head ? `<div class="slide-head">${esc(ch.head)}</div>` : '',

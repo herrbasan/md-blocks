@@ -10,7 +10,7 @@ slideshow:
   defaultSeconds: 20
 ---
 
-<!-- mb:section id=title-slide preset=dark label="Title slide" -->
+<!-- mb:section id=title-slide preset=band label="Title slide" -->
 <!-- mb:var name=seconds value=20 -->
 
 # Aurora Desk
@@ -106,7 +106,7 @@ The visitor leaves with a useful next step, not an obligation.
 
 ---
 
-<!-- mb:section id=quote-slide preset=dark label="Quote slide" -->
+<!-- mb:section id=quote-slide preset=band label="Quote slide" -->
 
 > A good journey has an invitation, room to explore, and a clear way out.
 

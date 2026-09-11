@@ -82,7 +82,7 @@ When a single photograph needs its own story or crop, it gets its own block rath
 
 ---
 
-<!-- mb:section id=exhibition preset=dark label="Current exhibition" -->
+<!-- mb:section id=exhibition preset=band label="Current exhibition" -->
 <!-- mb:var name=seconds value=18 -->
 
 # Now showing
