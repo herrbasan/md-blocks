@@ -247,4 +247,4 @@ The important contrast is content versus editing structure.
 
 This closing section has no heading, which the `---` convention allows for free. One themed section
 (**The visitor journey**); the next `---` resets it. Every heading, image, link, and caption is ordinary
-Markdown; document data is frontmatter; section data is `var`; structure is five directives and one rule.
+Markdown; document data is frontmatter; section data is `var`; structure is six directives and one rule.

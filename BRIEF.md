@@ -1,6 +1,6 @@
 # MD-Blocks — Authoring Brief
 
-Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.2, locked) — read it when you need depth;
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.3, locked) — read it when you need depth;
 [demo/showcase.md](demo/showcase.md) is the tutorial.
 
 One example with every feature:
@@ -8,9 +8,12 @@ One example with every feature:
 ````md
 ---
 title: Aurora Desk                    ← YAML frontmatter = document metadata + document data
-header: Aurora Desk · Product Group   ← optional chrome (running head/foot)
-footer: Aurora Systems · 2026
 ---
+
+<!-- mb:main id=deck -->                ← a main: the chrome scope (§4.5). One per document by default
+<!-- mb:block repeat=header -->         ← chrome, authored ONCE: the renderer repeats it per slide
+Aurora Desk · Product Group
+<!-- mb:/block -->
 
 # Any heading is content
 
@@ -42,11 +45,16 @@ Right column.
 { "loop": false, "secondsPerSlide": 12 }
 ```
 ````
-
-Rules that keep you valid:
-
-- Five directives, each an HTML comment alone on its line at column 0: `mb:section`,
-  `mb:block`…`mb:/block`, `mb:columns`/`mb:col`…`mb:/columns`, `mb:var`. Any other comment is ignored.
+Six directives, each an HTML comment alone on its line at column 0: `mb:main` (a **break** — it
+  ends where the next one begins), `mb:section`, `mb:block`…`mb:/block`, `mb:columns`/`mb:col`…`mb:/columns`
+  (`mb:/col` is accepted), `mb:var`. Any other comment is ignored.
+- **`main` is the chrome scope**: the unit a renderer turns into surfaces (one section = one slide;
+  pages when printed) and the unit that owns the header/footer. A document has exactly one main
+  unless it writes a marker, so write one only when the chrome changes part-way — a title sequence
+  with no chrome, a closing slide with a different footer. `mb:/main` does not exist; it is an error.
+- **Chrome is a block with `repeat`**: `<!-- mb:block repeat=header -->` … `<!-- mb:/block -->`, and
+  `repeat=footer`. Author it once, at the top of the main; the renderer repeats it onto every surface.
+  Several blocks may share a slot — the first sizes the strip, the rest overlay it in source order.
 - Attributes on the opening line only: `key=word`, `key="with spaces"`, `key=12`, `key=[2,1]`
   (strict JSON). Shared optional attributes: `id`, `label`, `preset`. No `class` / `style` / `width` —
   presentation lives in the renderer's preset table.

@@ -1,6 +1,6 @@
 # MD-Blocks — Format Spec
 
-> **Status:** v1.2 (2026-09-11) — **locked**. This file contains only what is needed to understand
+> **Status:** v1.3 (2026-09-11) — **locked**. This file contains only what is needed to understand
 > the format. History, rationale, and the decisions log live in [DECISIONS.md](DECISIONS.md);
 > every change to this file is recorded there, with a version bump. Removed section numbers are
 > never reused, so external `§`-references stay valid.
@@ -16,9 +16,12 @@
 ---
 title: Aurora Desk                      ← YAML frontmatter = document metadata + document data
 year: 2026
-header: Aurora Desk · Product Group     ← optional profile chrome (running head/foot), §5
-footer: Aurora Systems · Concept · 2026
 ---
+
+<!-- mb:main id=deck -->                ← a main: the chrome scope (§4.5). One per document by default
+<!-- mb:block repeat=header -->         ← chrome, authored ONCE: the renderer repeats it per surface
+Aurora Desk · Product Group
+<!-- mb:/block -->
 
 # Any heading is content
 
@@ -48,8 +51,10 @@ Right.
 <!-- mb:var name=seconds value=12 -->    ← named data for this section
 ```
 
-Five directives: `section` `block` `columns` `col` `var`. Two of them close (`block`, `columns`).
-Three optional attributes shared by all structural directives: `id`, `label`, `preset`.
+Six directives: `main` `section` `block` `columns` `col` `var`. Two of them close (`block`,
+`columns`); one is a **break**, not a container — `main`, which ends where the next one begins.
+Three optional attributes shared by all structural directives: `id`, `label`, `preset`. One
+attribute turns an ordinary block into chrome: `repeat=header|footer` (§4.6).
 One separator: `---` between sections — the convention Marp, reveal-md and Deckset use for slides.
 
 That is the authoring surface. What distinguishes MD-Blocks is §6: **what the editor is required to
@@ -124,12 +129,11 @@ escape the comment.
 | `id` | identifier | Optional stable identity, unique per file. Anchor target in enhanced output. Editor-stamped when absent (§6.3). |
 | `label` | string | Editor-only name. Never rendered, never a substitute for content. |
 | `preset` | token (colon-delimited: `family[:modifier[:variant]]`) | Semantic presentation hint interpreted by a renderer profile (§5). Bare token or quoted string. |
-
 No `class`, `style`, `width`, `color`. Presentation lives in the renderer's preset table.
 
 ---
 
-## 4. The five directives
+## 4. The six directives
 
 ### 4.1 Sections and `section`
 
@@ -229,7 +233,9 @@ Markdown and blocks.
 <!-- mb:/columns -->
 ```
 
-- `columns` is a container, closed by `<!-- mb:/columns -->`. Only blank lines and ordinary comments may
+- `columns` is a container, closed by `<!-- mb:/columns -->`. Only blank lines and or
+  `<!-- mb:/col -->` is accepted as the same boundary written explicitly — it is the same
+  structure, so it parses identically and is preserved as authored.dinary comments may
   appear before the first `col`.
 - The **number of `col` markers is the column count**, minimum 2. `weights` (optional JSON array of
   positive numbers) must have exactly that many entries; default equal. Authored values are preserved,
@@ -266,6 +272,71 @@ Markdown and blocks.
   at all and quietly shows the fenced payload as an ordinary code block. A collection renderer reads
   the var from the tree and renders nothing.
 
+### 4.5 `main` — the chrome scope
+
+```md
+<!-- mb:main id=deck label="Deck" -->
+
+<!-- mb:block repeat=header -->
+Aurora Desk · Concept · 2026
+<!-- mb:/block -->
+
+# Any heading is content
+```
+
+- A **main** is the unit a renderer turns into **surfaces**, and the unit that owns **chrome**. A
+  slideshow renderer makes one surface per section — one slide each; a paged renderer fragments the
+  main into pages, carrying its chrome onto every one; a screen renderer shows one continuous region.
+- The marker is a **break, not a container**: a main ends where the next `mb:main` begins, or at the
+  end of the document. There is no closing form.
+- **A document has exactly one main unless it writes a marker.** Content before the first marker is
+  a main of its own, so a document that never mentions `main` is unaffected by this section.
+- A marker that is the first thing in the document, or in an otherwise empty scope, annotates the
+  main it opens rather than leaving an empty one in front of it.
+- Document level only: a marker inside a `block` or `columns` is an error. Each boundary is structure
+  in both sequences — it ends the open implicit-block run (§6.1) and starts a new section. An empty
+  main produces no surfaces.
+- **Chrome is authored once, in the main, and repeated per surface by the renderer** (§4.6). Neither
+  the source nor the renderer writes it out per surface.
+
+#### 4.5.1 `preset` on a main
+
+`preset` on a main names the treatment of **the surfaces that main produces** — the same
+relationship chrome has: authored once on the scope, applied by the renderer to each surface. This
+is not inheritance: a section's preset addresses the **content region**, a main's addresses the
+**surface**, and the two never cascade into one another. A profile that cannot distinguish those
+targets renders the main's preset plain and warns, like any preset it does not know (§5).
+
+The frontmatter `header`/`footer` keys stay profile data — the format never interprets frontmatter.
+Where a profile supports both, authored chrome (§4.6) is the format's mechanism and the profile
+decides precedence.
+
+### 4.6 `repeat` — chrome
+
+```md
+<!-- mb:block repeat=header -->
+Aurora Desk · Concept · 2026
+<!-- mb:/block -->
+
+<!-- mb:block repeat=footer -->
+Aurora Systems — internal draft.
+<!-- mb:/block -->
+```
+
+- `repeat` is an attribute on an ordinary `block`: `repeat=header` puts it in the main's header slot,
+  `repeat=footer` in its footer slot. The block's content **is** the chrome — no separate chrome
+  syntax, and no new node in the tree: the block stays where it was authored.
+- Chrome belongs to the **main**, in whichever section it is written. Canonical position is first,
+  before the main's content; position within the main does not change what it is.
+- Several blocks may share a slot. The **first** establishes the strip's extent — it is the one that
+  sizes it; every later block **overlays** within that extent, painting in source order. Overlay is
+  meant for a plate and its content (an image behind text); two content blocks in one slot overlap,
+  which is the author's business, not an error.
+- **Chrome is not content.** A region holding nothing but chrome blocks is not a surface, or the
+  canonical placement above would put a blank slide in front of every deck. A region that was empty
+  in the source is a deliberate empty section (§4.1) and is preserved.
+- `repeat` takes no other value and is not valid on `columns` or `col`.
+
 ---
 
 ## 5. Presets & Semantic HTML Mapping
@@ -273,6 +344,8 @@ Markdown and blocks.
 `preset` names a semantic presentation intent using colon-separated segments: `family[:modifier[:variant]]`
 (e.g. `card:warning`, `image:hero`, `image:left:small`, `gallery:featured`). The format stores and preserves
 the authored token; a renderer profile maps the family and optional modifier/variant to layout and styling.
+On a `main`, the token addresses the surfaces that main produces rather than a content region, and the
+two never cascade (§4.5.1).
 
 ### Graceful degradation contract
 1. **Full profile:** knows `family[:modifier[:variant]]` — applies the exact variant and size.
@@ -310,6 +383,9 @@ agree on a spelling before they can interoperate:
 | Key | Meaning |
 |---|---|
 | `header` | Running head — chrome text for the top of a page, sheet, or slide |
+| `mb:/main` | error at marker — a main has no closing form; it ends at the next main or EOF (§4.5) |
+| `mb:main` inside a `block` or `columns` | error at marker — a main is document level |
+| `repeat` with a value other than `header`/`footer`, or on `columns`/`col` | error at marker |
 | `footer` | Running foot — chrome text for the bottom |
 
 Both are plain strings, rendered by the profile in whatever way suits its medium. Authoring them as
@@ -360,7 +436,9 @@ content; two editor versions never disagree about the tree.
 
 ### 6.4 What the editor never does
 
-- Never merge two explicit blocks; never split an implicit run (it writes `block` boundaries instead).
+- Never me
+- Never drop a `main` break: removing one merges two chrome scopes and re-chromes everything between
+  them without the file saying so.rge two explicit blocks; never split an implicit run (it writes `block` boundaries instead).
 - Never insert content between a `var` marker and its fence.
 - Never reorder or reflow a Markdown body it didn't edit; editing block A must not rewrite the bytes of
   block B.
@@ -394,21 +472,21 @@ The editor may hold invalid *source* and show diagnostics; it must not publish a
 
 ## 8. Round-trip contract
 
-Tree shape:
-
 ```text
-document { frontmatter, sections[] }
+document { frontmatter, mains[] }
+main     { id?, label?, preset?, sections[] }      ← the chrome scope (§4.5)
 section  { id?, label?, preset?, vars[], children[] }
 child    = markdown | block | columns
-block    { id?, label?, preset?, kind?, focal?, media?, markdown }
+block    { id?, label?, preset?, kind?, focal?, media?, markdown, repeat? }
 columns  { id?, label?, preset?, weights?, cols[] }
 col      { id?, label?, preset?, children[] }      ← children: markdown | block only
 ```
 
 Must be preserved byte-for-byte or structurally equivalent: Markdown bodies (including whitespace inside
-lists/code), frontmatter, block/column/section order, explicit boundaries, stamped attributes, var
-values, ordinary comments and their position, reference-link definitions (file-wide — copying a block to
-another file must carry or rewrite the definitions it uses).
+lists/code), frontmatter, block/column/section order, **main boundaries and their attributes**, explicit
+boundaries, stamped attributes, `repeat` attributes, var values, ordinary comments and their position,
+reference-link definitions (file-wide — copying a block to another file must carry or rewrite the
+definitions it uses).
 
 May normalize: whitespace around directives, attribute order, bare vs quoted spelling of the same string.
 
@@ -445,6 +523,17 @@ Each fixture is source + expected tree + expected generic/enhanced behavior, inc
 | Implicit run interrupted by `var`, then more markdown | two implicit blocks + one var |
 | Block whose first node is an image, then two paragraphs | media block, two-paragraph caption |
 | Block whose *second* node is an image | text block containing an inline image, not media |
+| Body with no `mb:main` | one implicit main (§4.5) |
+| `mb:main` as the first line of the body | annotates the implicit main — one main, not two |
+| Content before the first `mb:main` | that content is the first main; the marker starts the second |
+| Two adjacent `mb:main` markers | two mains, the first empty; an empty main has no surfaces |
+| `mb:/main` | error at the marker — no closing form exists |
+| Chrome block written mid-main, after content | still the main's chrome; position is not the binding |
+| Region holding nothing but chrome blocks | not a surface — no blank slide before the content |
+| Region empty in the source | preserved as an empty section — a deliberate blank |
+| `preset` on a main, and on a section inside it | different targets; they never cascade (§4.5.1) |
+| Two blocks sharing one chrome slot | the first sets the extent, the second overlays it |
+| `mb:/col` inside `columns` | accepted; the same boundary written explicitly |
 | Hand-authored media block without `kind` | kind inferred from first node |
 | Stamped `kind=image`, body edited so first node is a paragraph | validation error, not reclassification |
 | `columns` with 3 `col` and `weights=[2,1]` | error: weights length |

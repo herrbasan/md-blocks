@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="color-scheme" content="light dark">
+		<title>MD-Blocks — Preview</title>
+		<link rel="stylesheet" href="../modules/nui_wc2/NUI/css/nui-theme.css">
+		<link rel="stylesheet" href="../modules/nui_wc2/NUI/css/modules/nui-syntax-highlight.css">
+		<link rel="stylesheet" href="../modules/nui_wc2/NUI/css/modules/nui-lightbox.css">
+		<link rel="stylesheet" href="../modules/nui_wc2/NUI/css/modules/nui-slides.css">
+		<style>
+			/* Page chrome only — NUI components are never styled (house rule) */
+			body { margin: 0; padding: 0; height: 100dvh; display: flex; flex-direction: column; }
+			.preview-bar {
+				flex: 0 0 auto;
+				display: flex;
+				align-items: center;
+				gap: var(--nui-space);
+				padding: var(--nui-space-half) var(--nui-space);
+				border-bottom: 1px solid var(--border-shade2);
+			}
+			.preview-bar h1 { font-size: 1rem; margin: 0; white-space: nowrap; }
+			.preview-bar .spacer { flex: 1 1 auto; }
+			/* Fixed-width fields, so a long document name cannot resize the bar: the
+			   wrapper carries the width and nui-select fills it (its own width: 100%).
+			   Long values ellipsize inside the control. No nui-* element is styled. */
+			.preview-field { flex: 0 0 auto; }
+			.preview-field-doc { width: 22rem; }
+			.preview-field-view { width: 10rem; }
+			/* The scroller spans the viewport, so the scrollbar sits at its edge; the
+			   document is the thing that is measured and centred. */
+			.preview-stage {
+				flex: 1 1 auto;
+				min-height: 0;
+				width: 100%;
+				overflow: auto;
+			}
+			.preview-doc {
+				max-width: 60rem;
+				margin: 0 auto;
+				padding: var(--nui-space-double) var(--nui-space);
+				box-sizing: border-box;
+			}
+			/* Deck view: the slides own the stage — no measure, no padding, no scrolling.
+			   The margins go too: a deck's slides are absolutely positioned, so the
+			   wrapper has no intrinsic width, and auto margins would shrink it to zero
+			   instead of letting it stretch. */
+			body.view-slides .preview-stage { display: flex; flex-direction: column; overflow: hidden; }
+			body.view-slides .preview-doc {
+				flex: 1 1 auto;
+				width: 100%;
+				min-height: 0;
+				max-width: none;
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+		<script type="module">
+			import { nui } from '../modules/nui_wc2/NUI/nui.js';
+			import '../modules/nui_wc2/NUI/lib/modules/nui-lightbox.js';
+			import '../modules/nui_wc2/NUI/lib/modules/nui-slides.js';
+
+			// Labels stay short: the field has a fixed width so the bar cannot shift,
+			// and a label longer than the field is clipped by the control.
+			const DOCS = [
+				{ label: 'showcase.md (tutorial)', src: 'showcase.md' },
+				{ label: 'aurora-deck.md (slides)', src: 'aurora-deck.md' },
+				{ label: 'handbook-excerpt.md (print)', src: 'handbook-excerpt.md' },
+				{ label: 'mara-voss-portfolio.md', src: 'mara-voss-portfolio.md' },
+				{ label: 'exp: repeat-chrome.md', src: '../experiments/repeat-chrome.md' },
+				{ label: 'exp: repeat-overlay.md', src: '../experiments/repeat-overlay.md' },
+				{ label: 'exp: repeat-mains.md', src: '../experiments/repeat-mains.md' }
+			];
+
+			await nui.ready();
+
+			const params = new URLSearchParams(location.search);
+			const docSelect = document.getElementById('doc-select');
+			const viewSelect = document.getElementById('view-select');
+			const stage = document.getElementById('stage');
+
+			// Items go in through the component's own API, never by writing into the
+			// slotted <select>: the dropdown renders from component state, so a raw DOM
+			// write would leave the visible list stale while the DOM looked correct.
+			docSelect.setItems(DOCS.map(doc => ({ value: doc.src, label: doc.label })));
+			viewSelect.setItems([
+				{ value: 'page', label: 'Page' },
+				{ value: 'slides', label: 'Slides' }
+			]);
+
+			// The value lives on the component; `nui-change` is how it tells you it moved.
+			let src = DOCS.some(d => d.src === params.get('doc')) ? params.get('doc') : DOCS[0].src;
+			let view = params.get('view') === 'slides' ? 'slides' : 'page';
+			docSelect.setValue(src);
+			viewSelect.setValue(view);
+
+			function load() {
+				const slides = view === 'slides';
+				document.body.classList.toggle('view-slides', slides);
+				// nui-markdown processes its source once on connect — swap the element,
+				// not the attribute.
+				stage.innerHTML = '';
+
+				const md = document.createElement('nui-markdown');
+				md.setAttribute('src', src);
+				if (slides) {
+					// A deck carries its title in chrome, not in a metadata card.
+					md.setAttribute('frontmatter', 'strip');
+					const host = document.createElement('nui-slides');
+					host.setAttribute('height', 'fill');
+					host.appendChild(md);
+					stage.appendChild(host);
+				} else {
+					stage.appendChild(md);
+				}
+
+				const query = new URLSearchParams({ doc: src });
+				if (slides) query.set('view', 'slides');
+				history.replaceState(null, '', '?' + query.toString());
+			}
+
+			docSelect.addEventListener('nui-change', (e) => { src = e.detail.values[0]; load(); });
+			viewSelect.addEventListener('nui-change', (e) => { view = e.detail.values[0]; load(); });
+
+			load();
+		</script>
+	</head>
+	<body>
+		<div class="preview-bar">
+			<h1>MD-Blocks Preview</h1>
+			<div class="preview-field preview-field-doc">
+				<nui-select id="doc-select">
+					<select aria-label="Document"></select>
+				</nui-select>
+			</div>
+			<span class="spacer"></span>
+			<div class="preview-field preview-field-view">
+				<nui-select id="view-select">
+					<select aria-label="View">
+						<option value="page">Page</option>
+						<option value="slides">Slides</option>
+					</select>
+				</nui-select>
+			</div>
+		</div>
+		<main class="preview-stage">
+			<div class="preview-doc" id="stage"></div>
+		</main>
+	</body>
+</html>

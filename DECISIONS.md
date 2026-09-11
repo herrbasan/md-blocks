@@ -19,6 +19,7 @@
 | 2026-09-10 | **Directive prefix renamed `bm:` → `mb:`** to match the MD-Blocks name ("md blocks"). Live files only; `_Archive/` keeps `bm:` as history. |
 | 2026-09-10 | **Page breaks decided**: section = page unit for paged renderers; `preset=page-break` empty block for forced breaks; `break=` attribute deferred (spec §9.6). |
 | 2026-09-10 | **Header/footer decided**: no directive. Chrome is profile data (`header`/`footer` frontmatter keys); derived chrome is renderer-only (spec §5, §9.7). |
+| 2026-09-11 | **Chrome scope decided (spec v1.3)**: a `main` level above sections — the unit a renderer fragments into surfaces and the unit that owns chrome. Marked by a **break**, not an open/close pair: settled by a three-model authoring test (`_Archive/test-runs/main-marker/`) rather than by argument, after two consulted models split on the question. `preset` on a main names the treatment of its surfaces. `mb:/col` legalised. Supersedes the 2026-09-10 header/footer decision. |
 
 ## The ranking was biased — and why we trusted the test instead
 
@@ -66,8 +67,12 @@ The right answer was not a winner but a merge.
 | Self-closing single-node block | **Rejected** | A second block form for the common one-node case | Round-2 test: models handle the full open/close form without errors. A second form buys one line at the cost of a second rule. Revisit only if real authoring data says otherwise. |
 | Unknown things | **Kinds/attributes/duplicates = errors; unknown presets = renderer warning** | Silent ignore; everything an error | Typos must fail loud (that's what the `mb:` prefix is for — author comments stay possible). Presets are renderer concerns, so they degrade visibly, not fatally. |
 | Page breaks (print/PDF) | **Section = page unit; `preset=page-break` empty block for forced breaks** | A `mb:page` separator/directive; `break=` attribute (now) | A page is a *viewport* decision (A4 vs Letter vs slide can break differently) — renderer-profile territory, not source structure. Same section-per-viewport law as slides. `break=` (`inside-avoid` etc.) deferred until a renderer asks with evidence (spec §9.6). |
-| Shared header/footer | **Frontmatter `header`/`footer` keys (plain strings)** | `mb:header` / `mb:footer` directives; a `chrome` block | Two kinds of chrome, only one authorable. **Derived** chrome (page numbers, slide counts, progress, running heads from section titles) must stay renderer-computed — authoring "page 3 of 12" is the same redundancy trap as a `count=` on `columns`. **Authored** chrome (legal line, client name) is document data, so frontmatter already holds it, needs no grammar, and stays out of the movable body — an editor must never let a user drag a footer into a section. A directive would import viewport/positioning concerns into the authoring surface, the reason `class`/`style` are absent (spec §5, §9.7). |
+| Shared header/footer — *superseded 2026-09-11 by the `main` scope + `repeat`; see the decisions log* | **Frontmatter `header`/`footer` keys (plain strings)** | `mb:header` / `mb:footer` directives; a `chrome` block | Two kinds of chrome, only one authorable. **Derived** chrome (page numbers, slide counts, progress, running heads from section titles) must stay renderer-computed — authoring "page 3 of 12" is the same redundancy trap as a `count=` on `columns`. **Authored** chrome (legal line, client name) is document data, so frontmatter already holds it, needs no grammar, and stays out of the movable body — an editor must never let a user drag a footer into a section. A directive would import viewport/positioning concerns into the authoring surface, the reason `class`/`style` are absent (spec §5, §9.7). |
 | "No format used at all" | **Informational diagnostic, not an error** | Reject; ignore | Round-1 lesson (weak model wrote format-free Markdown that validated clean). A document with frontmatter but zero directives is valid prose — but the editor must *surface* it, because silence is how empty structure ships (§7 validation table). |
+| Chrome scope (`main`) | **A level above sections: the renderer fragments it into surfaces and repeats its chrome onto each** | Per-section chrome; frontmatter strings only; a `layout` attribute | Chrome has to attach to the thing that repeats — the *surface* — not to a content region. Authored once, repeated by the renderer: neither source nor tool writes it per surface. One implicit main leaves every existing document untouched. |
+| Main marker form | **A break: `mb:main` opens a scope, which ends at the next one or at EOF** | An open/close pair mirroring `block`/`columns` | Measured, not argued. Three models each followed the form they were shown (6/6 valid), and **none** wrote a close when the example used a break — so the predicted cost ("models will write `mb:/main` and be right") does not exist, while the pair's document-spanning unclosed state does. It also matches the structural rule already in force: nested containers close with a pair, siblings in a sequence are delimited by a break. |
+| `preset` on a main | **Names the treatment of the surfaces that main produces** | Forbidden on a main; a separate scope-level vocabulary | The same relationship chrome already has — authored once on the scope, applied per surface — so no second concept enters the format. A section's preset addresses the *content region*, so the two never cascade and §4.1's non-inheritance law is untouched. Forbidding it would also turn a natural guess into a parse error, since unknown attributes fail loud. |
+| Column close | **`mb:/col` accepted as the same boundary, written explicitly** | Error, as v1.2 implied | All three models in the test's control condition wrote it, unprompted. With `col` defined as a bare marker only, the spec would reject most first-pass decks over a construct nobody questioned — the format's own rule is that when an author would have to guess, the spec is wrong, not the author. |
 
 ## The round-trip argument (why B's strictness survived the merge)
 
@@ -101,6 +106,14 @@ in comments and leaves the Markdown alone."*
 - **Round-trip under a real editor** — the other half of the evidence. Everything so far measured
   authoring; the editor contract (§6) is argued, not yet measured. First parser milestone should
   test parse → mutate → serialize on the archived test-runs.
+- **One document per cell in the main-marker test too.** It is enough to refute a universal claim
+  ("a model *will* write `mb:/main`"); it is not enough to prove no author ever will.
+- **Content auto-fit for slides** — designed but not built, and deliberately deferred to the
+  `nui-slides` fine-tuning pass: let the layout absorb (clamped media, reflow) → bounded
+  deck-uniform shrink with a floor → report beyond it. Per-slide shrinking was rejected as a default
+  because a deck looks composed only when one scale governs every surface.
+- **`nui-slides` documentation.** The component exists and the preview page uses it, but it has no
+  `documentation/components/` entry or playground page in `nui_wc2` yet.
 - **Frontmatter key schema** — an application-profile decision, not a format one.
 - **Prefix name** (`mb:`) — only the *existence* of a prefix is load-bearing.
 - **N=1 per model in both test rounds.** Trends were consistent across three capability tiers, but
@@ -133,6 +146,34 @@ in comments and leaves the Markdown alone."*
    numbers, running heads from section titles) is renderer-only and never authored. Rejected:
    `mb:header` / `mb:footer` directives, which would put viewport and positioning concerns into the
    authoring surface.
+9. **Chrome scope — `main`** (2026-09-11, v1.3): a level above sections. A renderer fragments a main
+   into surfaces (one section = one slide; pages for print) and repeats the main's chrome onto each.
+   Chrome is authored once, as an ordinary block carrying `repeat=header|footer` (§4.6), and belongs
+   to the main wherever it is written — canonical position first. A document has exactly one implicit
+   main unless it writes a marker, so no existing document changes. **Supersedes entry 7**: chrome is
+   no longer a plain frontmatter string, because plain strings cannot carry an image, a link, or
+   formatting — the gap that reopened the question. The frontmatter keys remain profile data the
+   format never interprets. Discovered while modelling the renderer, which had to invent a rule for
+   the two cases the first attempt missed: a region holding only chrome is not a surface, and a
+   comment-only region is empty.
+10. **Main marker is a break, not a pair** (2026-09-11, v1.3): `mb:main` opens a scope; it ends where
+    the next one begins or at EOF. Two consulted models split on this, so it went to an authoring test
+    instead of a judgement call: three models × two forms, fresh context each, one example document per
+    condition (`_Archive/test-runs/main-marker/`). All six followed the form they were shown, and none
+    of the three shown a break wrote a close — so the guessability cost claimed for the break does not
+    occur, and the break's advantage stands: no document-spanning malformed state, for no capability
+    the pair has (a chrome-less tail is still just another main with no chrome blocks). It also follows
+    the rule the format already used: nested containers (`block`, `columns`) close with a pair; siblings
+    in a sequence (sections, mains) are delimited by a break. `mb:/main` is an error.
+11. **`preset` on a main** (2026-09-11, v1.3): names the treatment of the surfaces that main produces.
+    Both consulted models reached this independently, by the same route as entry 9 — chrome already
+    established "scope data, applied per surface", so a main preset adds no concept. A section's preset
+    addresses the content region; the two targets never cascade (§4.5.1). A profile that cannot tell the
+    targets apart renders the main's plain and warns, like any preset it does not know.
+12. **`mb:/col` accepted** (2026-09-11, v1.3): `col` stays a marker, but the explicit close is legal and
+    preserved as authored. Evidence: all three models in the test's control condition wrote it. A spec
+    that only allowed the bare form would have failed most first-pass decks on a construct no author
+    was guessing about.
 8. **Spec locked & stripped** (2026-09-11, v1.2): the spec now contains only what is needed to
    understand the format. History pointer (old §2) and this log (old §9) moved to this file;
    removed section numbers are never reused so external `§`-references stay valid. Fixed the §4.4
@@ -145,5 +186,7 @@ in comments and leaves the Markdown alone."*
 | The three proposals + the merged one | `_Archive/proposal-*/` |
 | The ranking (with bias section) | `_Archive/proposal-ranking.md` |
 | All 9 model-authored test documents + both rounds' analysis | `_Archive/test-runs/` |
+| The main-marker test (3 models × 2 forms) + verdict | `_Archive/test-runs/main-marker/` |
+| The renderer experiments that produced the `main` model | `experiments/` (repo root) |
 | The format itself | `md-blocks-spec.md` |
 | Tutorial + examples | `demo/` |

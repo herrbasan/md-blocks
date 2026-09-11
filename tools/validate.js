@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 /*
 MD-Blocks structural validator — DEMONSTRATION ARTIFACT. Zero-dependency, line-level.
-Validates demo documents against md-blocks-spec.md v1.
+Validates demo documents against md-blocks-spec.md v1.3.
 
 It exists to keep the examples honest and to show that the spec's rules (§7) are checkable.
 It is NOT the reference parser: no CommonMark tokenization, no tree build, no §6 (editor
 contract) checks. It knows fences, thematic breaks, the directive grammar and placement
-rules, columns/var arity and binding, duplicate ids and var names, and JSON attribute values.
-Directives inside list items or blockquotes are caught only when indented — a known
-approximation. When this tool and the spec disagree, the spec wins and this gets fixed.
+rules, columns/var arity and binding, chrome (`repeat`) placement, duplicate ids and var
+names, and JSON attribute values. Directives inside list items or blockquotes are caught
+only when indented — a known approximation. When this tool and the spec disagree, the spec
+wins and this gets fixed.
 
 Usage: node tools/validate.js <file.md> [more.md ...]
 Exit:  0 = clean (warnings allowed), 1 = errors.
@@ -17,11 +18,12 @@ Exit:  0 = clean (warnings allowed), 1 = errors.
 const fs = require('fs');
 const path = require('path');
 
-const STRUCTURAL = new Set(['section', 'block', 'columns', 'col', 'var']);
+const STRUCTURAL = new Set(['main', 'section', 'block', 'columns', 'col', 'var']);
 const CLOSEABLE = new Set(['block', 'columns']);
 const ATTRS = {
+  main:     new Set(['id', 'label', 'preset']),
   section:  new Set(['id', 'label', 'preset']),
-  block:    new Set(['id', 'label', 'preset', 'kind', 'focal']),
+  block:    new Set(['id', 'label', 'preset', 'kind', 'focal', 'icon', 'alt', 'repeat']),
   columns:  new Set(['id', 'label', 'preset', 'weights']),
   col:      new Set(['id', 'label', 'preset']),
   var:      new Set(['name', 'value']),
@@ -37,9 +39,11 @@ function validate(file) {
   const err = (n, msg) => errors.push(`${file}:${n + 1}: ${msg}`);
   const warn = (n, msg) => warnings.push(`${file}:${n + 1}: ${msg}`);
 
-  // Frontmatter: --- on line 1, closed by the next --- line.
+  // Frontmatter: --- on line 1, closed by the next --- line. Optional (§3) — its absence
+  // is not an error, but it is worth saying, because a document that meant to have one and
+  // lost its opener otherwise validates exactly the same way.
   let i = 0;
-  if (lines[0] !== '---') err(0, 'no frontmatter at line 1');
+  if (lines[0] !== '---') console.log(`${file}: informational — no frontmatter (optional, §3)`);
   else {
     for (i = 1; i < lines.length; i++) {
       if (lines[i] === '---') break;
@@ -102,6 +106,14 @@ function validate(file) {
       directiveCount++;
 
       if (slash) {
+        // `col` is a marker, not a container: its explicit close is the same boundary
+        // written out, so it parses identically (§4.3).
+        if (kind === 'col') {
+          if (bodyRaw.trim() !== '') { err(i, '/col takes no attributes'); continue; }
+          if (mode !== 'columns') { err(i, 'col outside columns'); continue; }
+          sawCol = true; colCount++;
+          continue;
+        }
         if (!CLOSEABLE.has(kind)) { err(i, `/${kind} is not a closing marker`); continue; }
         if (bodyRaw.trim() !== '') { err(i, `/${kind} takes no attributes`); continue; }
         if (kind === 'block') {
@@ -132,6 +144,8 @@ function validate(file) {
         sectionHasSection = true;
       } else if (kind === 'var') {
         if (mode !== 'root') { err(i, `var inside ${mode} — vars are section-level only`); continue; }
+      } else if (kind === 'main') {
+        if (mode !== 'root') { err(i, `mb:main inside ${mode} — a main is document level`); continue; }
       }
 
       // attributes
@@ -157,6 +171,8 @@ function validate(file) {
       }
 
       if (kind === 'block') {
+        if (attrs.repeat !== undefined && attrs.repeat !== 'header' && attrs.repeat !== 'footer')
+          err(i, `repeat "${attrs.repeat}" is not header|footer`);
         if (attrs.kind !== undefined && !KINDS.has(attrs.kind))
           err(i, `kind "${attrs.kind}" not in image|video|audio|file`);
         if (attrs.focal !== undefined) {
@@ -176,7 +192,11 @@ function validate(file) {
         }
       } else if (kind === 'var') {
         if (attrs.name === undefined) { err(i, 'var requires name='); continue; }
-        const scoped = `${sectionNo}:${attrs.name}`;
+        else if (kind === 'main') {
+        // A main marker is a boundary in the section sequence too: the content after it
+        // is a new section (§4.5), so per-section bookkeeping restarts here.
+        sectionNo++; sectionHasSection = false;
+      } const scoped = `${sectionNo}:${attrs.name}`;
         if (varNames.has(scoped)) err(i, `duplicate var name "${attrs.name}" in section ${sectionNo} (first at line ${varNames.get(scoped) + 1})`);
         else varNames.set(scoped, i);
         if (attrs.value === undefined) expectVarFence = { line: i, name: attrs.name };

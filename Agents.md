@@ -44,7 +44,7 @@ blocks/columns *are* the layout primitives. Renderers are consumers, not spec co
 
 1. YAML frontmatter = document metadata + document data.
 2. Root-level `---` = section separator (Marp / reveal-md / Deckset convention).
-3. Five directives, all HTML comments: `mb:section`, `mb:block`…`mb:/block`, `mb:columns`/`mb:col`…`mb:/columns`, `mb:var`.
+3. Six directives, all HTML comments: `mb:main` (a **break** — the chrome scope, spec §4.5), `mb:section`, `mb:block`…`mb:/block`, `mb:columns`/`mb:col`…`mb:/columns`, `mb:var`; `repeat=header|footer` on a block makes it chrome, which the renderer repeats per surface (§4.6).
 4. Plain Markdown needs no markup: maximal unannotated runs = one implicit block (spec §6.1 — format law, not editor policy).
 5. A block whose first node is an image / image list / media link is a media block; the rest is its caption.
 6. Attributes: `key=value` on the opening line only; `id`, `label`, `preset` shared by all structural directives.
@@ -76,7 +76,8 @@ modules/
 _Archive/          ← history: proposals A–D, ranking, authoring-test runs + report
   proposal-a-kimi/  proposal-b-astra/  proposal-c-claude/  proposal-d-merged/
   proposal-ranking.md
-  test-runs/       ← 9 model-authored documents + REPORT.md (the evidence for the design)
+  test-runs/       ← model-authored documents + REPORT.md per round (the evidence for the design);
+                     main-marker/ is the 3-models × 2-forms test that settled the `main` marker
 ```
 
 ### Spec repo boundary — what belongs here
@@ -101,7 +102,7 @@ implementer would have to guess, the spec is wrong, not the implementer.
 
 ## Status and next steps
 
-- **Spec v1.2, locked** (2026-09-11). Spec contains only format rules; history and decisions log
+- **Spec v1.3, locked** (2026-09-11). Spec contains only format rules; history and decisions log
   live in DECISIONS.md. No parser, validator, renderer, or editor exists yet.
 - Next: a zero-dependency JS parser/validator. Spec §10 (conformance cases) is the fixture list;
   §7 (validation) and §8 (round-trip contract) define its behavior. The archived test-runs are
@@ -117,7 +118,7 @@ implementer would have to guess, the spec is wrong, not the implementer.
   never reused so external `§`-references stay valid.
 - The showcase must stay valid: after touching it, run `node tools/validate.js demo/*.md`
   (zero errors required; warnings should be zero too).
-- New examples go in `demo/`; they must validate clean and use only the five directives.
+- New examples go in `demo/`; they must validate clean and use only the six directives.
 - The spec is the contract. Renderer presets, frontmatter schemas, and editor UX are **profiles** —
   they live with their consumers, not in this repo.
 - **Edit `md-blocks-spec.md`, not the demonstration tools.** When `tools/` and the spec disagree, the
