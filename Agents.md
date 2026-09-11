@@ -69,6 +69,10 @@ demo/              ← tutorial + example documents (all validate clean via tool
 tools/             ← DEMONSTRATION artifacts, not the reference implementation (see below)
   validate.js      ← illustrative structural validator (zero-dep Node); walks the spec's rules
   render.js        ← illustrative tri-profile renderer (page/print/deck)
+experiments/       ← format experiments with candidate syntax (NOT in the spec; validator errors expected)
+modules/
+  nui_wc2/         ← submodule (herrbasan/nui_wc2): the NUI library, home of the future
+                     nui-blocks renderer — vendored so renderer work can be tried against the spec
 _Archive/          ← history: proposals A–D, ranking, authoring-test runs + report
   proposal-a-kimi/  proposal-b-astra/  proposal-c-claude/  proposal-d-merged/
   proposal-ranking.md
@@ -84,7 +88,10 @@ implementation, and no consumer should depend on its internals.
 The real consumers are **separate projects**:
 
 - the **renderer** — the `nui-blocks` component in the nui library (`nui_wc2`), consumed by
-  `nui-markdown`;
+  `nui-markdown`; **vendored here as the `modules/nui_wc2` submodule** (2026-09-11) so renderer
+  work can be developed and tried against the spec in one workspace. It stays its own project:
+  consumer-side work items belong in the `nui_wc2` repo's issues, and the submodule pin is only
+  updated deliberately (check against upstream before editing inside it — never edit a stale pin).
 - the **editor** — a `nui` addon.
 
 Anything executable that ships to users lives there, not here. This format was originally developed
