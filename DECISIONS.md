@@ -106,6 +106,38 @@ in comments and leaves the Markdown alone."*
 - **N=1 per model in both test rounds.** Trends were consistent across three capability tiers, but
   one document per cell is thin. Re-run with more briefs before any format revision.
 
+## Spec decisions log
+
+> Moved out of the spec (2026-09-11, spec v1.1 → v1.2) so `md-blocks-spec.md` contains only what is
+> needed to understand the format. Every change to the spec is appended here, with a spec version bump.
+
+1. **Section separator** (2026-09-08): `---`. Cost accepted: a root-level `<hr>` inside a
+   section is not expressible (use one inside a `block` if you truly need it).
+2. **Unannotated chunking** (2026-09-09): maximal run, format law (spec §6.1). Left to editor policy,
+   every implementation would have to invent identical chunk boundaries forever; made deterministic
+   in the spec instead.
+3. **Self-closing single-node blocks** (2026-09-10, reaffirmed): rejected. The authoring test showed
+   models handle the full open/close form without errors, so a second form buys one line at the cost
+   of a second rule.
+4. **Prefix** (2026-09-10): `mb:` matches the MD-Blocks name. Only the *existence* of a prefix is
+   load-bearing.
+5. **Frontmatter schema** (2026-09-10): not a format concern. Which keys an application profile
+   requires is a profile decision; the format stores keys and never interprets them.
+6. **Page breaks (print/PDF)** (2026-09-10): no new separator or directive. A page is a *viewport*
+   decision (A4 vs Letter vs slide), not source structure, so it lives in renderer profiles: paged
+   renderers treat **one section = one page** (the same section-per-viewport law as slides), and an
+   explicit forced break is an empty `mb:block preset=page-break` (spec §5). A `break=` attribute
+   (`inside-avoid` etc., mapping to CSS fragmentation) is deferred until a renderer needs it with evidence.
+7. **Shared header/footer** (2026-09-10): no directive. Chrome is profile data — `header`/`footer`
+   frontmatter keys (plain strings) with a renderer convention (spec §5); derived chrome (page/slide
+   numbers, running heads from section titles) is renderer-only and never authored. Rejected:
+   `mb:header` / `mb:footer` directives, which would put viewport and positioning concerns into the
+   authoring surface.
+8. **Spec locked & stripped** (2026-09-11, v1.2): the spec now contains only what is needed to
+   understand the format. History pointer (old §2) and this log (old §9) moved to this file;
+   removed section numbers are never reused so external `§`-references stay valid. Fixed the §4.4
+   `var` example fence (outer fence now four backticks so the nested ```json fence terminates correctly).
+
 ## Where the evidence lives
 
 | What | Where |

@@ -1,11 +1,11 @@
 # MD-Blocks — Format Spec
 
-> **Status:** Working spec v1 (2026-09-10) — **adopted**. Merged from proposals
-> [C (Claude, author-oriented)](_Archive/proposal-c-claude/spec.md) and
-> [B (Astra, editor-oriented)](_Archive/proposal-b-astra/spec.md), informed by the
-> [authoring test](_Archive/test-runs/REPORT.md). Parser and editor not yet implemented.
-> **Companion:** [showcase.md](demo/showcase.md) — the showcase *is* the tutorial; this file is the rulebook
-> for whoever writes the parser and the editor. Second example document:
+> **Status:** v1.2 (2026-09-11) — **locked**. This file contains only what is needed to understand
+> the format. History, rationale, and the decisions log live in [DECISIONS.md](DECISIONS.md);
+> every change to this file is recorded there, with a version bump. Removed section numbers are
+> never reused, so external `§`-references stay valid.
+> **Companions:** [showcase.md](demo/showcase.md) — the showcase *is* the tutorial; this file is the
+> rulebook for whoever writes the parser and the editor. Second example document:
 > [mara-voss-portfolio.md](demo/mara-voss-portfolio.md).
 
 ---
@@ -73,27 +73,10 @@ Non-goals: pixel parity between generic and enhanced rendering; expressing style
 
 ---
 
-## 2. Lineage — what came from where
+## 2. (removed — history)
 
-| Topic | C (surface) | B (contract) | This proposal |
-|---|---|---|---|
-| Document metadata | YAML frontmatter | `mb:document` JSON | **frontmatter** (C) |
-| Section separator | `---` thematic break | root H1 / `mb:section` | **`---`** (C) |
-| Block | explicit, closes | explicit, closes | **C = B** (they agreed) |
-| Media | block whose first node is media | `mb:media` + strict body + `caption=` | **C's shape** + B's strictness via editor-stamped `kind` (§6.2) |
-| Column count | derived from `col` markers | required `count=` | **derived** (C) |
-| Var scope | section-only, frontmatter for document data | required `scope=` | **section-only** (C) |
-| Attribute grammar | `key=value`, opening line only | two forms | **one form** (C) |
-| Unannotated-Markdown chunking | "editor policy, not format" | maximal run = one implicit block | **B's rule is format law** (§6.1) |
-| Block identity | optional `id` | optional `id` | **editor stamps `id` on save** (§6.3) |
-| Type reclassification | silent (first-node inference) | impossible (explicit `kind`) | **loud**: stamped `kind` contradicting the body is an error (§6.2) |
-| Validation | strict table | strict table | **merged** (§8) |
-| Round-trip | invariant stated | invariant + preservation list + trust boundary | **B's, adapted** (§9) |
-
-The authoring test (2026-09-08) motivates the merge: C's surface and B's surface were *equally*
-authorable by a strong model (0 errors, 6/6 elements each), but C's forgiveness let a weak model produce
-a structurally empty document that validated clean. The format keeps C's surface; the parser and editor
-enforce B's contract.
+Section numbers are never reused, so external `§`-references stay valid. History and rationale
+live in [DECISIONS.md](DECISIONS.md).
 
 ---
 
@@ -257,14 +240,14 @@ Markdown and blocks.
 
 ### 4.4 `var`
 
-```md
+````md
 <!-- mb:var name=seconds value=12 -->
 
 <!-- mb:var name=slideshow -->
 ```json
 { "loop": false, "secondsPerSlide": 12 }
 ```
-```
+````
 
 - `name` (identifier, required). Either `value=` (any attribute value) **or** exactly one following
   fenced code block with info string `json` or `text`, separated only by blank lines. JSON must parse;
@@ -343,8 +326,8 @@ why there is no `header`/`footer` directive, just as there is no `class` or `sty
 
 ## 6. The editor contract (what distinguishes MD-Blocks)
 
-C left three things implicit that a visual editor cannot afford to guess. MD-Blocks keeps C's
-authoring surface untouched and assigns each gap a deterministic owner. **Authors never write what this
+A visual editor cannot afford to guess at three things that plain authored Markdown leaves implicit.
+MD-Blocks assigns each gap a deterministic owner. **Authors never write what this
 section describes by hand — but everything here is format law, so every tool computes the same tree.**
 
 ### 6.1 Unannotated Markdown: one rule, not editor policy
@@ -441,25 +424,10 @@ source parsed. Comments and vars must never store secrets in public documents.
 
 ---
 
-## 9. Open questions (deliberately not decided here)
+## 9. (removed — decisions log)
 
-1. ~~**Section separator.**~~ Decided 2026-09-08: `---`. Cost accepted: a root-level `<hr>` inside a
-   section is not expressible (use one inside a `block` if you truly need it).
-2. ~~**Unannotated chunking.**~~ Decided 2026-09-09: maximal run, format law (§6.1). C had left it to
-   editor policy; the round-trip argument and the authoring test settled it.
-3. **Self-closing single-node blocks.** Still rejected: the authoring test showed models handle the full
-   open/close form without errors, so the second form buys one line at the cost of a second rule.
-4. **Prefix.** `mb:` is inherited. Only the *existence* of a prefix is load-bearing.
-5. **Frontmatter schema.** Which keys an application profile requires is a profile decision, not a format one.
-6. **Page breaks (print/PDF).** Decided 2026-09-10: no new separator or directive. A page is a *viewport*
-   decision (A4 vs Letter vs slide), not source structure, so it lives in renderer profiles: paged
-   renderers treat **one section = one page** (the same section-per-viewport law as slides), and an
-   explicit forced break is an empty `mb:block preset=page-break` (§5). A `break=` attribute
-   (`inside-avoid` etc., mapping to CSS fragmentation) is deferred until a renderer needs it with evidence.
-7. **Shared header/footer.** Decided 2026-09-10: no directive. Chrome is profile data — `header`/`footer`
-   frontmatter keys (plain strings) with a renderer convention (§5); derived chrome (page/slide numbers,
-   running heads from section titles) is renderer-only and never authored. Rejected: `mb:header` /
-   `mb:footer` directives, which would put viewport and positioning concerns into the authoring surface.
+Section numbers are never reused, so external `§`-references stay valid. The decisions log moved to
+[DECISIONS.md](DECISIONS.md) — every change to this file is recorded there, with a spec version bump.
 
 ## 10. Conformance cases (to turn into fixtures)
 

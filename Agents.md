@@ -91,7 +91,8 @@ implementer would have to guess, the spec is wrong, not the implementer.
 
 ## Status and next steps
 
-- **Spec v1 adopted** (2026-09-10). No parser, validator, renderer, or editor exists yet.
+- **Spec v1.2, locked** (2026-09-11). Spec contains only format rules; history and decisions log
+  live in DECISIONS.md. No parser, validator, renderer, or editor exists yet.
 - Next: a zero-dependency JS parser/validator. Spec §10 (conformance cases) is the fixture list;
   §7 (validation) and §8 (round-trip contract) define its behavior. The archived test-runs are
   additional real-world fixtures.
@@ -100,8 +101,10 @@ implementer would have to guess, the spec is wrong, not the implementer.
 
 ## Working agreements
 
-- **Every edit to md-blocks-spec.md is a format decision.** Record it: bump the status header, and append to
-  the decisions log in spec §9 rather than editing history away.
+- **Every edit to md-blocks-spec.md is a format decision.** Record it: bump the spec's status header
+  version, and append to the decisions log in [DECISIONS.md](DECISIONS.md) rather than editing history away.
+  The spec itself contains only what is needed to understand the format; removed section numbers are
+  never reused so external `§`-references stay valid.
 - The showcase must stay valid: after touching it, run `node tools/validate.js demo/*.md`
   (zero errors required; warnings should be zero too).
 - New examples go in `demo/`; they must validate clean and use only the five directives.
