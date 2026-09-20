@@ -264,6 +264,20 @@ function mdToHtml(lines) {
 /* ------------------------------------------------------------- profiles */
 
 const PRESET_BLOCK = { lead: 'lead', note: 'callout note', warning: 'callout warning', card: 'card', cta: 'cta', 'page-break': 'page-break' };
+
+/* §5.1 degradation. A profile that knows the preset's *family* may discard segments it does not
+   implement (`gallery:row` → the gallery default); an unknown family must WARN and render plain.
+   Silence here would read as "the format's player does nothing" rather than "this renderer is old". */
+const KNOWN_PRESET_FAMILIES = new Set(['card', 'note', 'warning', 'lead', 'cta', 'hero', 'gallery', 'image', 'band', 'cover', 'page-break']);
+const presetWarnings = new Set();
+
+function presetNote(token) {
+  if (!token) return '';
+  const family = String(token).split(':')[0];
+  if (KNOWN_PRESET_FAMILIES.has(family)) return '';
+  presetWarnings.add(token);
+  return `<!-- unknown preset "${token}" — rendered plain (§5.1) -->`;
+}
 const MEDIA_EXT = /\.(mp4|webm|mov|mp3|wav|ogg|m4a|pdf|zip)$/i;
 
 function classifyBlock(block) {
@@ -279,14 +293,28 @@ function classifyBlock(block) {
     if (items.length && items.length === listLines)
       return { kind: 'image-list', items, caption: body.slice(items.length) };
   }
-  const link = first.match(/^\[!\[[^\]]*\]\([^)]+\)\]\(([^)]+)\)$/) || first.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-  if (link && MEDIA_EXT.test(link[1] || link[2] || '')) return { kind: 'media', caption: body.slice(1) };
+  const linked = first.match(/^\[!\[([^\]]*)\]\(([^)]+)\)\]\(([^)]+)\)$/);
+  const plain = first.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+  // The destination is group 3 for a linked image, group 2 for a plain link. Testing the link *text*
+  // (the old `link[1] || link[2]`) classified nothing as media and dropped the node when it did (§4.2).
+  const dest = linked ? linked[3] : plain ? plain[2] : null;
+  if (dest && MEDIA_EXT.test(dest))
+    return {
+      kind: 'media',
+      dest,
+      poster: linked ? linked[2] : null,
+      alt: linked ? linked[1] : null,
+      text: linked ? null : plain[1],
+      caption: body.slice(1),
+    };
   return { kind: 'text' };
 }
 
 function blockHtml(block) {
   const p = block.attrs.preset;
   if (p === 'page-break') return `<div class="page-break" data-preset="page-break"></div>`;
+  const note = presetNote(p);
+  const family = String(p || '').split(':')[0];
   const cls = ['block', PRESET_BLOCK[p] || ''].filter(Boolean).join(' ');
   const media = classifyBlock(block);
   if (media.kind === 'image' || media.kind === 'image-list') {
@@ -295,10 +323,18 @@ function blockHtml(block) {
       ? `<img src="${src(media.src)}" alt="" style="object-position:${(f.x ?? .5) * 100}% ${(f.y ?? .5) * 100}%">`
       : `<div class="gallery-grid">${media.items.map(it => `<figure><img src="${src(it.src)}" alt="${esc(it.alt)}"></figure>`).join('')}</div>`;
     const cap = media.caption.length ? `<figcaption>${mdToHtml(media.caption)}</figcaption>` : '';
-    return `<figure class="${cls} ${p === 'gallery' ? 'gallery' : 'hero'}" data-preset="${p || ''}">${imgs}${cap}</figure>`;
+    return `${note}<figure class="${cls} ${family === 'gallery' ? 'gallery' : 'hero'}" data-preset="${p || ''}">${imgs}${cap}</figure>`;
   }
-  if (media.kind === 'media') return `<div class="${cls}" data-preset="${p || ''}">${media.caption.length ? mdToHtml(media.caption) : ''}</div>`;
-  return `<div class="${cls}" data-preset="${p || ''}">${mdToHtml(block.body)}</div>`;
+  if (media.kind === 'media') {
+    // Link-class media. Which element it becomes is profile territory (§5.1) — this demonstration
+    // profile renders the destination as a link, carrying the authored poster image when there is one.
+    const inner = media.poster
+      ? `<img src="${src(media.poster)}" alt="${esc(media.alt || '')}">`
+      : esc(media.text || media.dest);
+    const cap = media.caption.length ? `<figcaption>${mdToHtml(media.caption)}</figcaption>` : '';
+    return `${note}<figure class="${cls} media" data-preset="${p || ''}"><a href="${src(media.dest)}">${inner}</a>${cap}</figure>`;
+  }
+  return `${note}<div class="${cls}" data-preset="${p || ''}">${mdToHtml(block.body)}</div>`;
 }
 
 function childrenHtml(children) {
@@ -311,8 +347,8 @@ function childrenHtml(children) {
         : c.cols.map(() => 1);
       const tmpl = w.map(x => `${x}fr`).join(' ');
       const cols = c.cols.map(col =>
-        `<div class="col ${col.attrs.preset === 'card' ? 'card' : ''}">${childrenHtml(col.children)}</div>`).join('');
-      return `<div class="columns" data-preset="${c.attrs.preset || ''}" style="grid-template-columns:${tmpl}">${cols}</div>`;
+        `${presetNote(col.attrs.preset)}<div class="col ${col.attrs.preset === 'card' ? 'card' : ''}">${childrenHtml(col.children)}</div>`).join('');
+      return `${presetNote(c.attrs.preset)}<div class="columns" data-preset="${c.attrs.preset || ''}" style="grid-template-columns:${tmpl}">${cols}</div>`;
     }
     return '';
   }).join('\n');
@@ -578,7 +614,7 @@ function render(doc, profile, name) {
     const topbar = ch.head ? `<div class="chrome-top">${esc(ch.head)}</div>` : '';
     const header = `<header class="doc"><h1>${esc(title)}</h1>${tags ? `<p class="meta">${tags}</p>` : ''}</header>`;
     const body = doc.sections.map(s =>
-      `<section class="region ${s.attrs.preset || ''}"${s.attrs.id ? ` id="${esc(s.attrs.id)}"` : ''} data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section>`).join('\n');
+      `${presetNote(s.attrs.preset)}<section class="region ${s.attrs.preset || ''}"${s.attrs.id ? ` id="${esc(s.attrs.id)}"` : ''} data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section>`).join('\n');
     const foot = ch.foot ? `<footer class="chrome-foot">${esc(ch.foot)}</footer>` : '';
     return shell(title, CSS_PAGE, topbar + header + body + foot);
   }
@@ -588,7 +624,7 @@ function render(doc, profile, name) {
     const runHead = ch.head ? `<div class="sheet-head">${esc(ch.head)}</div>` : '';
     const runFoot = ch.foot ? `<div class="sheet-foot">${esc(ch.foot)}</div>` : '';
     const body = doc.sections.map(s =>
-      `<div class="sheet">${runHead}<section class="region ${s.attrs.preset || ''}" data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section>${runFoot}</div>`).join('\n');
+      `<div class="sheet">${runHead}${presetNote(s.attrs.preset)}<section class="region ${s.attrs.preset || ''}" data-preset="${s.attrs.preset || ''}">${childrenHtml(s.children)}</section>${runFoot}</div>`).join('\n');
     return shell(title + ' — print', CSS_PRINT, head + body);
   }
   if (profile === 'deck') {
@@ -601,7 +637,7 @@ function render(doc, profile, name) {
         ch.head ? `<div class="slide-head">${esc(ch.head)}</div>` : '',
         ch.foot ? `<div class="slide-foot">${esc(ch.foot)}</div>` : ''
       ].join('');
-      return `<div class="${cls}"${secs ? ` data-seconds="${secs.value}"` : ''}>${ch0}<div class="slide-body">${childrenHtml(s.children)}</div></div>`;
+      return `${presetNote(s.attrs.preset)}<div class="${cls}"${secs ? ` data-seconds="${secs.value}"` : ''}>${ch0}<div class="slide-body">${childrenHtml(s.children)}</div></div>`;
     }).join('\n');
     return shell(title, CSS_DECK, `<div id="stage"><div id="slideWrap">${body}</div></div><div id="bar"></div><div id="count"></div>`, DECK_JS);
   }
@@ -625,5 +661,7 @@ if (require.main === module) {
     const out = path.join(outDir, `${base}.${p}.html`);
     fs.writeFileSync(out, render(doc, p, base));
     console.log(`${out} (${doc.sections.length} sections)`);
+    for (const w of presetWarnings) console.log(`  warning: unknown preset "${w}" — rendered plain (§5.1)`);
+    presetWarnings.clear();
   }
 }

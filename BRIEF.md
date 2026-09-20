@@ -1,6 +1,6 @@
 # MD-Blocks — Authoring Brief
 
-Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.3, locked) — read it when you need depth;
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.5, locked) — read it when you need depth;
 [demo/showcase.md](demo/showcase.md) is the tutorial.
 
 One example with every feature:
@@ -45,7 +45,7 @@ Right column.
 { "loop": false, "secondsPerSlide": 12 }
 ```
 ````
-Six directives, each an HTML comment alone on its line at column 0: `mb:main` (a **break** — it
+- Six directives, each an HTML comment alone on its line at column 0: `mb:main` (a **break** — it
   ends where the next one begins), `mb:section`, `mb:block`…`mb:/block`, `mb:columns`/`mb:col`…`mb:/columns`
   (`mb:/col` is accepted), `mb:var`. Any other comment is ignored.
 - **`main` is the chrome scope**: the unit a renderer turns into surfaces (one section = one slide;
@@ -62,8 +62,10 @@ Six directives, each an HTML comment alone on its line at column 0: `mb:main` (a
   A `---` inside a block is an `<hr>`, not a section break.
 - **Media blocks:** a block whose first node is a single image (or a flat list of images, or a link
   ending in a media extension) is media; everything after that node is the caption. `kind`
-  (`image` / `video` / `audio` / `file`) is inferred when omitted. An image later in a block is just
-  an inline image.
+  (`image` / `video` / `audio` / `file`) is inferred when omitted; an unrecognised extension reads as
+  `file`. A video's poster is a linked image: `[![poster](poster.jpg)](film.mp4)`. An image later in a
+  block is just an inline image. `preset=player` asks for inline playback; with no preset a link stays
+  the link the author wrote, and `link:download` marks a reference with a download affordance.
 - **Columns:** number of `col` markers = column count (min 2); `weights` must have exactly that many
   entries. Columns hold Markdown and blocks, never sections or vars.
 - **Vars:** section-level named data — either `value=` inline or one fenced `json` / `text` block
@@ -72,6 +74,7 @@ Six directives, each an HTML comment alone on its line at column 0: `mb:main` (a
 - **Sections:** root-level `---` separates them; surround it with blank lines (directly under a
   paragraph line it becomes a setext H2). Each section is one slide for a slideshow renderer.
 - `preset` is a semantic hint: `family[:modifier[:variant]]` — e.g. `card:warning`,
-  `image:hero:bleed`, `gallery:mosaic`. Unknown presets render plain with a warning, never an error.
+  `image:hero:bleed`, `gallery:mosaic`, `player`, `link:download`. Unknown presets render plain with a
+  warning, never an error.
 - When in doubt, author plain Markdown — unannotated content is valid. Add directives only for
   structure the layout needs.

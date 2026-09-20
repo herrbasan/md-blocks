@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiosk Handbook — Excerpt</title>
+<style>
+:root{
+  --ink:#151a1f; --ink-2:#3a444f; --ink-3:#5f6975;
+  --paper:#fbfaf7; --paper-2:#f3efe8; --card:#ffffff;
+  --line:#e9e3d9; --line-2:#dad3c5;
+  --accent:#0d6a5f; --accent-soft:#e7f1ef;
+  --amber:#96571a; --amber-soft:#fbf1e4;
+  --dark:#131b21; --dark-2:#1d2831; --dark-line:#2c3942; --dark-ink:#e8eef2; --dark-ink-2:#9db0bd;
+  --r-sm:6px; --r:10px; --r-lg:16px;
+  --sh-1:0 1px 2px rgba(20,26,33,.05), 0 1px 3px rgba(20,26,33,.04);
+  --sh-2:0 2px 5px rgba(20,26,33,.05), 0 8px 20px rgba(20,26,33,.06);
+  --sans:'Inter','Segoe UI Variable Text','Segoe UI',system-ui,-apple-system,sans-serif;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;
+  --mono:'Cascadia Code',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.68 var(--serif);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,h4,h5,h6{font-family:var(--sans);font-weight:600;line-height:1.2;letter-spacing:-.018em;margin:1.6em 0 .5em}
+h1{font-size:clamp(1.9rem,3.4vw,2.6rem);letter-spacing:-.028em}
+h2{font-size:1.4rem} h3{font-size:1.13rem} h4{font-size:1rem}
+p{margin:.7em 0}
+a{color:var(--accent);text-underline-offset:2px;text-decoration-thickness:1px}
+strong{font-weight:600}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+img{max-width:100%;display:block;border-radius:var(--r);background:var(--paper-2)}
+code{font:.87em/1.5 var(--mono);background:var(--paper-2);padding:.12em .4em;border-radius:5px;border:1px solid var(--line)}
+pre{background:#1a2229;color:#dfe7ec;padding:1.1em 1.3em;border-radius:var(--r);overflow:auto;font-size:.9em}
+pre code{background:none;border:0;padding:0;color:inherit}
+blockquote{margin:1.4em 0;padding:.2em 0 .2em 1.3em;border-left:2px solid var(--accent);
+  font-size:1.06em;font-style:italic;color:var(--ink-2)}
+blockquote p{margin:.4em 0}
+ul,ol{margin:.7em 0;padding-left:1.3em}
+li{margin:.28em 0}
+table{border-collapse:collapse;margin:1.2em 0;width:100%;font-family:var(--sans);font-size:.9rem}
+th,td{padding:.6em .8em;text-align:left;border-bottom:1px solid var(--line)}
+thead th{border-bottom:1.5px solid var(--line-2);font-weight:600;font-size:.83rem;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:var(--paper-2)}
+figure{margin:0}
+figcaption{font-family:var(--sans);font-size:.87rem;color:var(--ink-3);padding:.7em .1em 0;line-height:1.5}
+
+/* prose measure: figures and column grids may use full width */
+.md > p, .md > ul, .md > ol, .md > blockquote, .md > h2, .md > h3, .md > h4 { max-width:70ch }
+.md > :first-child, .block > :first-child, .col > :first-child { margin-top:0 }
+.md > :last-child, .block > :last-child, .col > :last-child { margin-bottom:0 }
+
+/* blocks */
+.block{margin:1.2em 0}
+.block.lead{font-size:1.22em;line-height:1.6;color:var(--ink-2)}
+.block.callout{background:var(--accent-soft);border-left:3px solid var(--accent);
+  border-radius:0 var(--r) var(--r) 0;padding:1em 1.3em}
+.block.callout.warning{background:var(--amber-soft);border-left-color:var(--amber)}
+.block.callout h3{font-size:1rem;letter-spacing:0;margin:0 0 .35em;color:var(--accent)}
+.block.callout.warning h3{color:var(--amber)}
+.block.callout p:last-child{margin-bottom:0}
+.block.card,.col.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:1.4em 1.5em;box-shadow:var(--sh-1)}
+.block.cta{text-align:center;font-family:var(--sans);font-size:1.05rem;padding:1.2em;
+  border:1px dashed var(--line-2);border-radius:var(--r-lg);background:#fff}
+.block.cta p{margin:0}
+
+/* media: ratios keep imagery from dominating the page */
+figure.hero img{width:100%;aspect-ratio:21/9;object-fit:cover}
+figure.gallery .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7em}
+.gallery-grid figure{margin:0}
+.gallery-grid img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.block.card img,.col.card img{width:100%;aspect-ratio:16/10;object-fit:cover}
+
+/* columns */
+.columns{display:grid;gap:1.5rem;align-items:start}
+.columns .col{min-width:0}
+.columns .col img{max-height:400px;object-fit:cover}
+@media (max-width:820px){.columns{grid-template-columns:1fr !important}}
+
+/* thematic sections */
+section.region{padding:4.5rem max(6vw,calc((100vw - 1040px)/2))}
+section.region + section.region{border-top:1px solid var(--line)}
+
+/* Band theme — ONE scope covering both containers a renderer may mark as a band:
+   section.region.band (page/print) and .slide.band (deck). Every inverting rule
+   must live here: scoping these to the section alone left the deck rendering
+   light text on white cards and code (contrast 1.17:1 — invisible).
+   This profile treats a band as a fully inverted theme; that is a profile choice,
+   not a format rule — another renderer maps the same name to a subtle shade. */
+.band{background:var(--dark);color:var(--dark-ink)}
+.band a{color:#7fd6c8}
+.band .block.lead{color:var(--dark-ink-2)}
+.band blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
+.band .block.callout{background:#1b2932;border-left-color:#3f8f83}
+.band .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
+.band .block.callout h3{color:#7fd6c8}
+.band .block.callout.warning h3{color:#e0a862}
+.band .block.card,.band .col.card{background:var(--dark-2);border-color:var(--dark-line);box-shadow:none}
+.band .block.cta{background:#18222a;border-color:var(--dark-line);color:var(--dark-ink)}
+.band hr{border-top-color:var(--dark-line)}
+.band th,.band td{border-bottom-color:var(--dark-line)}
+.band thead th{color:var(--dark-ink-2);border-bottom-color:#3a4a55}
+.band tbody tr:nth-child(even){background:#18222a}
+.band code{background:#1b2932;border-color:var(--dark-line);color:var(--dark-ink)}
+.band pre{background:#0f1519;border:1px solid var(--dark-line)}
+.band figcaption{color:var(--dark-ink-2)}
+.band img{background:#1b2932}
+
+body.deck{background:#0f1519;overflow:hidden}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#slideWrap{width:1280px;height:720px;position:relative;transform-origin:center center}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:74px 72px;
+  background:var(--paper);color:var(--ink);border-radius:6px;overflow:hidden;
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .22s ease,transform .22s ease}
+.slide.active{opacity:1;visibility:visible;transform:none}
+/* content that exceeds the frame scrolls instead of being silently clipped */
+.slide-body{flex:1;min-height:0;display:flex;flex-direction:column;
+  justify-content:safe center;gap:.9rem;overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.slide-body::-webkit-scrollbar{width:6px}
+.slide-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+/* safety net: a plain Markdown image on a slide must not outgrow the frame.
+   More specific rules (figure.hero, .gallery-grid, .col) override this. */
+.slide-body img{max-height:260px;object-fit:cover}
+.slide.overflowing::after{content:'';position:absolute;left:0;right:0;bottom:74px;height:46px;
+  pointer-events:none;background:linear-gradient(to bottom,transparent,var(--paper))}
+.slide.overflowing.band::after{background:linear-gradient(to bottom,transparent,var(--dark))}
+.slide.band{background:linear-gradient(160deg,#182430 0%,#101820 100%);color:var(--dark-ink)}
+.slide.cover h1{font-size:3rem;letter-spacing:-.035em}
+.slide h1{font-size:2.5rem;margin:0 0 .1rem;letter-spacing:-.03em}
+.slide h2{font-size:1.22rem;margin:.3em 0 .2em}
+.slide h3{font-size:1rem}
+.slide p{margin:.35em 0;font-size:1rem;line-height:1.6}
+.slide .md > p,.slide .md > ul,.slide .md > ol,.slide .md > h2,.slide .md > h3{max-width:none}
+.slide ul,.slide ol{padding-left:1.2em}
+.slide li{margin:.16em 0}
+.slide .block{margin:.6em 0}
+.slide .block.lead{font-size:1.3rem;line-height:1.5}
+.slide .block.lead p{font-size:inherit}
+.slide .block.lead p,.slide .block.lead ul{max-width:46ch}
+.slide .block.callout{padding:.85em 1.1em}
+.slide .block.card,.slide .col.card{padding:1.1em 1.2em;border-radius:12px;box-shadow:var(--sh-1)}
+.slide figure.hero{margin:0}
+.slide figure.hero img{aspect-ratio:21/9;max-height:290px}
+.slide figcaption{padding-top:.5em;font-size:.82rem}
+.slide .gallery-grid{gap:.6rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.slide .gallery-grid img{aspect-ratio:16/10;max-height:210px}
+.slide .columns{gap:1.1rem;align-items:stretch}
+.slide .col img{aspect-ratio:16/10;max-height:145px}
+.slide .col.card img{max-height:145px}
+.slide blockquote{margin:.6em 0;font-size:1.5rem;line-height:1.5;border-left-width:3px;max-width:34ch}
+.slide table{font-size:.84rem;margin:.6em 0}
+.slide th,.slide td{padding:.45em .6em}
+/* authored chrome — dim running head/foot inside the slide frame */
+.slide-head,.slide-foot{position:absolute;left:72px;right:72px;font-family:var(--sans);
+  font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.slide-head{top:30px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.slide-foot{bottom:30px}
+.slide.band .slide-head{border-bottom-color:var(--dark-line)}
+.slide.band .slide-head,.slide.band .slide-foot{color:var(--dark-ink-2)}
+#bar{position:fixed;left:0;bottom:0;height:3px;width:0;transition:width .25s ease;
+  background:linear-gradient(90deg,var(--accent),#4fb3a2)}
+#count{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;
+  color:#6d7d88;font:600 11px/1 var(--sans);letter-spacing:.16em}
+</style></head>
+<body class="deck"><div id="stage"><div id="slideWrap"><div class="slide cover"><div class="slide-body"><div class="md"><h1>Kiosk Handbook</h1></div>
+<div class="block lead" data-preset="lead"><p>Everything the floor team needs to keep the Aurora Desk kiosk healthy: daily care, the visitor questions that matter, and what to do when something goes wrong.</p></div>
+<div class="md"><p><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate" loading="lazy"></p>
+<p><em>Front desk copy — replace when the version number changes.</em></p></div></div></div>
+<div class="slide"><div class="slide-body"><div class="md"><h1>Purpose and scope</h1>
+<p>This excerpt covers the two chapters the floor team asked for most: daily care and first-line support. The full handbook lives in the back office binder.</p></div>
+<div class="block callout note" data-preset="note"><h3>Note: written for shift work</h3>
+<p>Each section is one printed page. If you are reading this on paper and a section spills onto a second sheet, the print profile is out of date — report it, do not tape it.</p></div>
+<div class="md"></div></div></div>
+<div class="slide"><div class="slide-body"><div class="md"><h1>Daily care</h1>
+<p>The morning routine takes about ten minutes and needs no tools.</p></div>
+<div class="columns" data-preset="" style="grid-template-columns:2fr 1fr"><div class="col "><div class="md"><ol><li>Clean the screen with the microfiber cloth from the drawer.</li><li>Check that the attract loop is playing.</li><li>Start one session yourself and take the tour.</li><li>Log the check in the book under the counter.</li></ol></div></div><div class="col card"><div class="md"><p><strong>Never:</strong></p>
+<ul><li>glass cleaner on the screen</li><li>unplugging the kiosk overnight</li><li>skipping the tour step</li></ul>
+<p>The tour is how you notice a dead zone before a visitor does.</p></div></div></div>
+<div class="md"><h2>The weekly check</h2>
+<p>Every Friday, wipe the enclosure, test both headphones, and confirm the kiosk clock matches the register clock. A drifting clock means the scheduled restarts are not running — that is a first-line support item, not a cleaning item.</p></div>
+<div class="page-break" data-preset="page-break"></div>
+<div class="md"><h2>The monthly check</h2>
+<p>Once a month, print the visitor summary from the back office and file it with the check book. The summary takes two minutes to produce and answers the question the regional team always asks.</p>
+<p>The empty block above is a forced page break: it exists for paged renderers (print/PDF) and does nothing on screen or in a slideshow. On paper this long section ends here and &quot;The monthly check&quot; starts on a fresh page.</p></div>
+<div class="block card" data-preset="card"><h3>Filing the summary</h3>
+<p>Staple the printout behind the current month's page, newest on top. Keep twelve months in the binder; older summaries go to the archive box.</p></div>
+<div class="md"></div></div></div>
+<div class="slide"><div class="slide-body"><div class="md"><h1>First-line support</h1></div>
+<div class="block callout warning" data-preset="warning"><h3>Warning: when to stop and call</h3>
+<p>If the screen is dark, the enclosure is warm, or you smell electronics: turn off the wall switch and call facilities. Do not open the enclosure. Everything else is first-line.</p></div>
+<div class="md"><h2>The two-minute triage</h2></div>
+<div class="columns" data-preset="" style="grid-template-columns:1fr 1fr"><div class="col "><div class="md"><ul><li>is asleep → tap the corner twice</li><li>shows the wrong language → hold both corners for five seconds</li><li>has no sound → check the headphone jack first</li></ul></div></div><div class="col "><div class="md"><ul><li>it wakes → done</li><li>it resets → log it</li><li>sound returns → log it anyway</li></ul>
+<p>Two log entries in a week for the same kiosk means it becomes a second-line ticket.</p></div></div></div>
+<div class="md"></div>
+<div class="md"><p>The escalation data above is part of this section: a paged renderer can print it in the margin, a page renderer can turn it into a contact card.</p></div></div></div></div></div><div id="bar"></div><div id="count"></div><script>
+const slides=[...document.querySelectorAll('.slide')];let i=0;
+function show(n){slides[i]&&slides[i].classList.remove('active');i=(n+slides.length)%slides.length;slides[i].classList.add('active');
+document.getElementById('bar').style.width=((i+1)/slides.length*100)+'%';
+measure();count();}
+function count(){const s=slides[i];
+document.getElementById('count').textContent=(i+1)+' / '+slides.length+(s.classList.contains('overflowing')?' ↓ more':'');}
+function measure(){slides.forEach(s=>{const b=s.querySelector('.slide-body');if(!b)return;
+s.classList.toggle('overflowing',b.scrollHeight>b.clientHeight+2);});}
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);document.getElementById('slideWrap').style.transform='scale('+s+')';measure();count();}
+addEventListener('resize',fit);fit();show(0);
+/* re-measure once assets settle: images change content height after first layout */
+addEventListener('load',()=>{measure();count();});
+slides.forEach(s=>s.querySelectorAll('img').forEach(im=>{
+if(!im.complete)im.addEventListener('load',()=>{measure();count();},{once:true});}));
+addEventListener('keydown',e=>{if(['ArrowRight',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();show(i+1);}
+if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();show(i-1);}
+if(e.key==='Home')show(0);if(e.key==='End')show(slides.length-1);});
+addEventListener('click',e=>{if(e.clientX>innerWidth/2)show(i+1);else show(i-1);});
+</script></body></html>

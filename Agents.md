@@ -48,7 +48,7 @@ blocks/columns *are* the layout primitives. Renderers are consumers, not spec co
 4. Plain Markdown needs no markup: maximal unannotated runs = one implicit block (spec §6.1 — format law, not editor policy).
 5. A block whose first node is an image / image list / media link is a media block; the rest is its caption.
 6. Attributes: `key=value` on the opening line only; `id`, `label`, `preset` shared by all structural directives.
-7. Media `kind` is inferred when hand-authored, **stamped by the editor on save**; a stamped kind that contradicts the body is an error, not a silent reclassification (spec §6.2).
+7. Media `kind` is inferred when hand-authored, **stamped by the editor on save**; the stamp pins the media *class* — a stamped kind whose first node leaves that class is an error, not a silent reclassification. The `video`/`audio`/`file` refinement is profile data (spec §6.2).
 8. Editor stamps stable `id`s; never derived from positions (spec §6.3).
 9. A `var` and its fenced payload are one lexical unit; vars are section data, frontmatter is document data.
 10. Validation fails loud with locations; unknown kinds/attributes/duplicates are errors; unknown presets are renderer warnings.
@@ -64,6 +64,9 @@ demo/              ← tutorial + example documents (all validate clean via tool
   aurora-deck.md   ← slideshow demo (section = slide, per-slide vars)
   handbook-excerpt.md ← paged print demo (section = page, preset=page-break)
   mara-voss-portfolio.md
+  media.md         ← the media reference: every media shape one block each — image and image list,
+                     video (plain link, linked poster, stamped kind), audio (single and list),
+                     file, a gallery preset, and media blocks inside columns
   images/
   rendered/        ← generated HTML (page/print/deck profiles) — committed as result examples
 tools/             ← DEMONSTRATION artifacts, not the reference implementation (see below)
@@ -102,8 +105,12 @@ implementer would have to guess, the spec is wrong, not the implementer.
 
 ## Status and next steps
 
-- **Spec v1.3, locked** (2026-09-11). Spec contains only format rules; history and decisions log
-  live in DECISIONS.md. No parser, validator, renderer, or editor exists yet.
+- **Spec v1.5, locked** (2026-09-20). Spec contains only format rules; history and decisions log
+  live in DECISIONS.md. v1.4 sharpened media: the class (`image` | `link`) is format law and is what a
+  stamp pins; the `video`/`audio`/`file` refinement within the link class is profile data (§4.2, §6.2,
+  §7). v1.5 gave the role of a media URL a token: `preset=player` asks for inline playback, and with no
+  preset a link-class block stays the link the author wrote — the existing `link` family is the explicit
+  *don't embed* (§5.1). No parser, validator, renderer, or editor exists yet.
 - Next: a zero-dependency JS parser/validator. Spec §10 (conformance cases) is the fixture list;
   §7 (validation) and §8 (round-trip contract) define its behavior. The archived test-runs are
   additional real-world fixtures.
@@ -116,9 +123,32 @@ implementer would have to guess, the spec is wrong, not the implementer.
   version, and append to the decisions log in [DECISIONS.md](DECISIONS.md) rather than editing history away.
   The spec itself contains only what is needed to understand the format; removed section numbers are
   never reused so external `§`-references stay valid.
+- **Mirror the docs to the workshop storage box.** `Agents.md`, `README.md`, `md-blocks-spec.md`,
+  `DECISIONS.md`, `BRIEF.md` and `demo/` are mirrored to MCP storage at `documentation/md-blocks/`, and
+  listed in `documentation/AGENTS.md`. That copy is the one other sessions and the chat app actually
+  read — indexed by the VDB, reachable without this repo. **Re-sync it in the same session as any change
+  here**: a stale mirror teaches false rules to a session that cannot tell it is stale. Three routes:
+  `storage.write` / `storage.import`, `http://192.168.0.100:3100/storage/documentation/md-blocks/`, or a
+  plain file copy to `\\BADKID\Stuff\MCP_Storage\documentation\md-blocks\`. Links into `tools/`,
+  `modules/`, `experiments/` and `_Archive/` do not resolve in the mirror — it is documentation, not a
+  working copy.
 - The showcase must stay valid: after touching it, run `node tools/validate.js demo/*.md`
-  (zero errors required; warnings should be zero too).
+  (zero errors required; warnings should be zero too). Note that PowerShell does not expand the glob for
+  an external command — list the demo files explicitly.
+- **The authoring brief lives in three places, and `BRIEF.md` is canonical.** It is embedded — adapted,
+  not linked — in both `documentation/Workshop/Agents_Prime.md` (the canonical prime directive, all
+  hemispheres) and `Agents_Prime_Chat.md`. **Changing `BRIEF.md` means porting the rule change to both
+  primes in the same session**, and moving the spec-version stamp each of them carries. They are
+  hand-maintained copies, so nothing enforces this: the stamp is the only drift signal, and it only works
+  if it moves. The embedded copies point at `documentation/md-blocks/…` rather than repo-relative paths,
+  so they are not byte-identical to `BRIEF.md` — the *rules* are what must match, not the prose.
 - New examples go in `demo/`; they must validate clean and use only the six directives.
+- **`demo/rendered/` is generated, so it goes stale silently.** After touching any `demo/*.md`, re-render
+  it in the same session — `node tools/render.js demo/<name>.md` writes all three profiles — and commit
+  the result. Nothing checks this (issue #2); the committed HTML is what a reader trusts, so a stale
+  example teaches a rule the source no longer says. Re-render when `tools/render.js` changes too, since
+  the examples then disagree with the renderer. The full set of profiles is committed for every demo
+  (page, print, deck), so a re-render also legitimately adds files.
 - The spec is the contract. Renderer presets, frontmatter schemas, and editor UX are **profiles** —
   they live with their consumers, not in this repo.
 - **Edit `md-blocks-spec.md`, not the demonstration tools.** When `tools/` and the spec disagree, the

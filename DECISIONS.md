@@ -20,6 +20,8 @@
 | 2026-09-10 | **Page breaks decided**: section = page unit for paged renderers; `preset=page-break` empty block for forced breaks; `break=` attribute deferred (spec §9.6). |
 | 2026-09-10 | **Header/footer decided**: no directive. Chrome is profile data (`header`/`footer` frontmatter keys); derived chrome is renderer-only (spec §5, §9.7). |
 | 2026-09-11 | **Chrome scope decided (spec v1.3)**: a `main` level above sections — the unit a renderer fragments into surfaces and the unit that owns chrome. Marked by a **break**, not an open/close pair: settled by a three-model authoring test (`_Archive/test-runs/main-marker/`) rather than by argument, after two consulted models split on the question. `preset` on a main names the treatment of its surfaces. `mb:/col` legalised. Supersedes the 2026-09-10 header/footer decision. |
+| 2026-09-20 | **Media class vs refinement decided (spec v1.4)**: the media *class* (`image` | `link`) is format law and is what a stamped `kind` pins; the `video` / `audio` / `file` refinement inside the link class is **profile data**. Raised while reviewing how audio and video are supported, against the renderer's behaviour. |
+| 2026-09-20 | **The role of a media URL gets a token (spec v1.5)**: `preset=player` asks for inline playback; with no preset a link-class media block stays the link the author wrote. The existing `link` family carries the other role. One new token, no new grammar. |
 
 ## The ranking was biased — and why we trusted the test instead
 
@@ -178,6 +180,45 @@ in comments and leaves the Markdown alone."*
    understand the format. History pointer (old §2) and this log (old §9) moved to this file;
    removed section numbers are never reused so external `§`-references stay valid. Fixed the §4.4
    `var` example fence (outer fence now four backticks so the nested ```json fence terminates correctly).
+13. **Media class vs kind refinement** (2026-09-20, v1.4): the media *class* — `image` (an image, or a
+    flat list of images) vs `link` (a link, a linked image, or a flat list of either) — is format law,
+    and the class is what a stamped `kind` pins. The refinement *within* the link class
+    (`video` / `audio` / `file`) is **profile data**: decided by the extension→kind mapping a profile
+    declares, with anything unrecognised read as `file`. Two constraints forced the split. §8 already
+    forbids parsing-time media lookups, so the kind cannot be derived from the actual media type; and
+    §6.2 *stamps* the resolved kind into the source, so a hard error on a refinement disagreement would
+    let one profile's extension table declare another profile's file invalid — the stamp would record a
+    guess and then make that guess law. Class mismatch stays a loud error, because that is exactly the
+    hazard §6.2 exists to catch (a drag puts a paragraph above the media); a refinement disagreement
+    becomes a renderer warning that preserves the stamp. §8's round-trip wording already tested the
+    *node* ("contradicting the block's first node", "first node is a paragraph"), so this tightens the
+    prose to the rule the mechanism always had — it is a disambiguation, not a new mechanism. §5.1 now
+    states outright that link-class presentation (bare element, player addon, download badge) is profile
+    territory, the way `page-break` already was; silence read as omission, and the rule that an
+    implementer must never have to guess applies to boundaries, not just to syntax. §10 gained the
+    audio/video conformance cases the format had rules for but no fixtures — notably the linked-poster
+    form `[![poster](p.jpg)](film.mp4)`, which `_Archive/proposal-b-astra/showcase.md` and
+    `_Archive/proposal-c-claude/showcase.md` both demonstrated and the adopted demos dropped.
+    Also fixed: §8's block shape listed an undefined `media?` (vestigial from proposal B's
+    `media` + `caption=true` form) and omitted `icon?` / `alt?`, which §4.2 defines.
+14. **`preset=player` — the role of a media URL** (2026-09-20, v1.5): a link-class media block left
+    unannotated renders as a *link*, and `preset=player` asks for **inline playback**. The problem was
+    that the format said nothing about the role at all, so whether `[Play the reference sample](x.mp3)`
+    became an `<a>` or a player was left to each renderer — the demo could only express the intent in its
+    *caption prose*, and prose is not data. Both roles now have one home: the existing `link` family
+    (`:cta`, `:download`) is the explicit *don't embed*, and `player` is the deliberate act. Chosen as a
+    preset rather than a `role=` attribute on three grounds. (a) Presets are already stored and preserved
+    byte-for-byte, so an editor records the user's choice with no loss — the round-trip argument that
+    would justify an attribute does not apply. (b) An unknown attribute is an *error*: a renderer that
+    predates the token would reject the document, whereas an unknown preset degrades. (c) No new grammar —
+    vocabulary is the part of the spec explicitly designed to grow. The default is the interesting half:
+    **no preset = a link**, because that is literally what the author wrote and exactly what CommonMark
+    shows, so an unannotated document renders the same in a generic preview and a full profile. Setting
+    the default in the spec (rather than leaving it to profiles) is what stops renderers drifting on the
+    unmarked case. It also dissolves the collision noted with entry 13 — link class + `link:*` = a
+    reference, link class + `player` = embedded, no third concept. Not measured: whether a model shown
+    only the showcase would guess `player`; the format's own precedent for naming decisions is a
+    three-model authoring test (see entry 10), so that check is still owed.
 
 ## Where the evidence lives
 

@@ -1,6 +1,6 @@
 # MD-Blocks — Format Spec
 
-> **Status:** v1.3 (2026-09-11) — **locked**. This file contains only what is needed to understand
+> **Status:** v1.5 (2026-09-20) — **locked**. This file contains only what is needed to understand
 > the format. History, rationale, and the decisions log live in [DECISIONS.md](DECISIONS.md);
 > every change to this file is recorded there, with a version bump. Removed section numbers are
 > never reused, so external `§`-references stay valid.
@@ -199,7 +199,7 @@ renders the body as ordinary Markdown and drops the attribute, so the block degr
 
 A block is a **media block** when its first Markdown node is one of:
 
-| First node | Media kind |
+| First node | Media class → `kind` |
 |---|---|
 | Paragraph containing exactly one image `![alt](src)` | image |
 | Flat unordered list whose items each contain exactly one image | image, list form (one leaf, ordered items) |
@@ -210,12 +210,21 @@ Everything after that first node, up to the close, is the block's **caption** �
 (no further images). An optional `focal={"x":0..1,"y":0..1}` applies to image blocks.
 `kind` ∈ `image \| video \| audio \| file`; whether the body is a single item or a list is read from
 the body itself, and the authored form is preserved (a one-item list stays a list). A `preset=gallery`
-on an image list is presentation; the kind stays `image`.
+on an image list is presentation; the kind stays `image`. Likewise a `preset=player` on a link-class
+block is presentation: the refinement still follows the destination, and with no preset at all the
+block renders as the reference the author wrote (§5.1).
+
+Two **media classes**, and only two, are structural — the node says which it is: **image** (an image, or
+a flat list of images) and **link** (a link, a linked image, or a flat list of either). The class is
+format law. The refinement *within* the link class — `video`, `audio`, `file` — is decided by the
+destination's media type, and parsing performs no lookups (§8), so the extension→kind mapping is
+**profile data**: a profile declares the extensions it knows and reads everything else as `file`. A
+refinement is presentation; it never carries structure (§6.2).
 
 `kind` is **optional when hand-authored** (inferred from the first node) and **stamped by the editor on
-save** (§6.2). Once stamped, it is authoritative: if the body stops matching the stamped `kind`, that is a
-validation *error*, not a silent reclassification. This is the mechanism that keeps an editor drag
-("paragraph above the image") from quietly mutating the tree.
+save** (§6.2). Once stamped, it is authoritative: if the body's first node stops belonging to the stamped
+`kind`'s media class, that is a validation *error*, not a silent reclassification. This is the mechanism
+that keeps an editor drag ("paragraph above the image") from quietly mutating the tree.
 
 A standalone image paragraph *outside* a block is plain Markdown. No inference across paragraphs.
 
@@ -364,13 +373,16 @@ Renderers should strive to emit **native semantic HTML5 elements** (`<section>`,
 | `card` | `note`<br>`warning`<br>`stat`<br>`quote`<br>`good`<br>`danger` | Paragraphs, headings, lists | Callout: `<aside role="note">`<br>Article: `<article>`<br>Quote: `<aside>` | Self-contained framed container.<br>`:note`, `:warning` apply contextual tint/border.<br>`:stat` = centered large numeric KPI callout.<br>`:quote` = editorial epigraph with attribution.<br>`:good`, `:danger` = recommendations / comparison cards. |
 | `image` | `hero[:bleed]`<br>`contain`<br>`icon`<br>`left[:small]`<br>`right[:small]` | Single image + caption | `<figure class="media-image">`<br>`  <img ...>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Single media figure.<br>`:hero` = prominent banner (optional `:bleed` expands flush edge-to-edge).<br>`:contain` = fit within bounds without cropping.<br>`:icon` = compact badge sized to text height (feature callout row).<br>`:left`, `:right` = float media and wrap subsequent text prose around it (optional `:small` for compact ~25% portrait/badge). |
 | `gallery` | `featured`<br>`mosaic`<br>`row`<br>`masonry` | Image list + caption | `<figure class="media-gallery">`<br>`  <ul class="items">...</ul>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Collection of media items.<br>Default = responsive thumbnail grid.<br>`:featured` = first image prominent/lead + sub-grid.<br>`:mosaic` = asymmetric editorial layout (1 large + 2 stacked).<br>`:row` = single full-width row split evenly.<br>`:masonry` = multi-column vertical waterfall. |
-| `link` | `cta`<br>`download` | Single link or link list | `<nav class="actions">`<br>`  <a href="..." role="button">...</a>`<br>`</nav>` | Action item.<br>`:cta` = primary call-to-action button.<br>`:download` = file badge with download affordance. |
+| `link` | `cta`<br>`download` | Single link or link list | `<nav class="actions">`<br>`  <a href="..." role="button">...</a>`<br>`</nav>` | Action item.<br>`:cta` = primary call-to-action button.<br>`:download` = file badge with download affordance.<br>On a link-class media block (§4.2) it is the explicit *don't embed*: the destination stays a reference. |
+| `player` | *(none)* | Single link to playable media, or a flat list of such links, plus caption | `<figure class="media-player">`<br>`  <audio\|video controls>…</audio\|video>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Inline playback rather than a reference.<br>A profile decides the element, the controls, the poster, and the list treatment (a list is a playlist).<br>Inapplicable to a destination the profile cannot play: that warns and stays a link. |
 | `list` | `steps`<br>`features` | Ordered or unordered list | `<ol class="steps">` or `<ul class="features">` | Enhanced list presentation.<br>`:steps` = numbered timeline / connected process.<br>`:features` = checkmark feature grid. |
 | `table` | `clean`<br>`specs`<br>`fit` | GFM Table | `<table class="table-[clean|specs|fit]">` | Tabular data presentation.<br>`:clean` = zero shades/backgrounds, subtle horizontal row dividers (clean list).<br>`:specs` = 2-column key/value sheet (header hidden, muted label column).<br>`:fit` = columns sized strictly by data cells; long header labels clip to fit and reveal full text via hover tooltip. |
 | `section` | `band[:bleed]`<br>`cover` | (Applied to `mb:section`) | `<section class="band">` | A section on a different surface from the page — a full-width banded region. The name describes the shape, never a colour: the profile decides the treatment (a subtle shade shift in one renderer, a fully inverted theme in another). Optional `:bleed` expands the surface flush to the container edges. |
 | `page-break` | *(none)* | `mb:block` (empty) | Forced break for paged renderers (print/PDF) — profile-defined; ignored (with warning) by screen renderers. |
 
 Optional `:bleed` is an orthogonal spatial modifier for blocks and sections that expands them horizontally to the boundary of the surrounding document container, cancelling parent container padding. Content inside retains appropriate safe margins.
+
+**A link-class media block starts as a link, and `player` is the deliberate act.** With no preset, a link-class block renders as the reference the author wrote — which is also exactly what a generic preview shows, so a profile that knows no vocabulary changes nothing. `preset=player` asks for inline playback instead. Which element carries it — a bare `<video>`, a player addon, its controls and poster — stays profile territory, exactly as the `page-break` row above is.
 
 Unknown *directive kind* or *attribute*: parse error. Composite editor palette entries are templates that expand into these primitives; they are not vocabulary.
 
@@ -422,9 +434,14 @@ content; two editor versions never disagree about the tree.
   showed models infer this correctly.
 - **Editor-saved:** the editor writes the resolved `kind=` (and `focal` if set through the UI) into the
   block marker. From then on the stamped kind is authoritative.
-- **Mismatch is loud:** a block stamped `kind=image` whose first node is no longer a single image is a
-  validation error at the block marker — the editor shows "this was an image block; fix or re-stamp"
-  instead of silently reclassifying the block as text. Re-stamping is an explicit user action.
+- **The stamp pins the media class, not the refinement.** A block stamped `kind=image` whose first node
+  is no longer an image (or a list of images) is a validation error at the block marker — the editor
+  shows "this was an image block; fix or re-stamp" instead of silently reclassifying the block as text.
+  Re-stamping is an explicit user action.
+- **A refinement disagreement is not an error.** For a link-class block the stamped `video` / `audio` /
+  `file` is a display hint: the extension→kind mapping is profile data (§4.2), so two profiles may read
+  `.webm` differently. A reader that disagrees keeps the stamp, renders as it sees fit, and warns (§7).
+  An error here would let one profile's extension table declare another profile's file invalid.
 
 ### 6.3 Stable identity: ids stamped, never derived
 
@@ -457,13 +474,15 @@ Fail loud, with source range, stable code, message, expected form. Never guess.
 | Unclosed `block`/`columns` | error at EOF or at the offending structural marker, citing the opener |
 | Stray `/block`, `/columns`, `col` outside columns | error with location |
 | `columns` with < 2 cols; `weights` length ≠ col count; nonpositive weight | error at `columns` marker |
-| Stamped `kind` contradicting the block's first node (§6.2) | error at block marker, citing stamped kind |
+| Stamped `kind` contradicting the **media class** of the block's first node (§6.2) | error at block marker, citing stamped kind |
 | Content between a `var` marker and its fence; `var` with neither `value` nor a valid `json`/`text` fence; invalid JSON | error at marker / payload |
 | Duplicate `id`; duplicate var `name` in same section; second `mb:section` in one section | error with both locations |
 | Raw HTML element outside code | unsupported-content error |
 | Paragraph line directly followed by `---` (setext H2) | **warning** at the rule, citing the trap |
 | Document has frontmatter but zero directives | informational diagnostic ("no structure") — valid, but the editor surfaces it; this catches the "author used none of the format" case without rejecting plain prose |
 | Unknown preset | renderer warning, plain rendering |
+| `preset=player` on a destination the profile cannot play (e.g. `kind=file`) | renderer warning, plain link |
+| Stamped `kind` refinement differing from the profile's own inference within the same media class (e.g. `kind=video` on an extension the profile reads as audio) | renderer warning, plain rendering; the stamp is preserved |
 | Unresolvable asset | renderer warning, source reference retained |
 
 The editor may hold invalid *source* and show diagnostics; it must not publish a guessed tree.
@@ -477,7 +496,7 @@ document { frontmatter, mains[] }
 main     { id?, label?, preset?, sections[] }      ← the chrome scope (§4.5)
 section  { id?, label?, preset?, vars[], children[] }
 child    = markdown | block | columns
-block    { id?, label?, preset?, kind?, focal?, media?, markdown, repeat? }
+block    { id?, label?, preset?, kind?, focal?, icon?, alt?, markdown, repeat? }
 columns  { id?, label?, preset?, weights?, cols[] }
 col      { id?, label?, preset?, children[] }      ← children: markdown | block only
 ```
@@ -535,7 +554,17 @@ Each fixture is source + expected tree + expected generic/enhanced behavior, inc
 | Two blocks sharing one chrome slot | the first sets the extent, the second overlays it |
 | `mb:/col` inside `columns` | accepted; the same boundary written explicitly |
 | Hand-authored media block without `kind` | kind inferred from first node |
+| `[Watch the film](film.mp4)` alone in a block | link-class media block, kind `video`; what follows is the caption |
+| `[![poster](p.jpg)](film.mp4)` alone in a block | one block, kind `video`; the image is the poster, not the media |
+| Link-class media block with no preset | renders as a link — the authored shape is the default |
+| `preset=player` on a single audio link | inline playback, caption below |
+| `preset=player` on a flat list of audio links | playlist treatment; the list form is preserved |
+| `preset=player` on a `kind=file` destination | renderer warning, plain link |
+| Flat list of audio links | link-class media block, kind `audio`, list form |
+| Destination whose extension the profile does not know | kind `file`, rendered plain |
 | Stamped `kind=image`, body edited so first node is a paragraph | validation error, not reclassification |
+| Stamped `kind=video`, body edited so first node is a paragraph | validation error, not reclassification |
+| Stamped `kind=video` on a `.webm` destination the profile reads as audio | renderer warning; stamp preserved, not an error |
 | `columns` with 3 `col` and `weights=[2,1]` | error: weights length |
 | Var + fence with a paragraph inserted between | error at var marker |
 | Frontmatter not at line 1 | `---` is a section break; following YAML is a paragraph |

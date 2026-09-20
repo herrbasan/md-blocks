@@ -54,6 +54,7 @@ function validate(file) {
   }
 
   let mode = 'root';            // root | block | columns
+  let blockReturn = 'root';     // the container a block was opened in — /block returns to that, not always root
   let sawCol = false;           // inside columns: any col marker seen yet
   let openBlockLine = 0, openColumnsLine = 0, colCount = 0, columnsWeights = null, columnsLine = 0;
   let sectionNo = 1, sectionHasSection = false;
@@ -118,7 +119,8 @@ function validate(file) {
         if (bodyRaw.trim() !== '') { err(i, `/${kind} takes no attributes`); continue; }
         if (kind === 'block') {
           if (mode !== 'block') { err(i, `stray /block (no open block)`); continue; }
-          mode = 'root';
+          // A block closes into the container it was opened in: a block may sit inside a col (§4.3).
+          mode = blockReturn;
         } else { // columns
           if (mode !== 'columns') { err(i, `stray /columns (no open columns)`); continue; }
           if (colCount < 2) err(openColumnsLine, `columns has ${colCount} col marker(s), minimum 2`);
@@ -181,7 +183,7 @@ function validate(file) {
             err(i, 'focal must be {"x":0..1,"y":0..1}');
           else if (f.x < 0 || f.x > 1 || f.y < 0 || f.y > 1) warn(i, 'focal value outside 0..1');
         }
-        mode = 'block'; openBlockLine = i;
+        blockReturn = mode; mode = 'block'; openBlockLine = i;
       } else if (kind === 'columns') {
         mode = 'columns'; sawCol = false; colCount = 0;
         openColumnsLine = i; columnsLine = i;
