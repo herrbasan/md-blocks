@@ -63,6 +63,12 @@ figcaption{font-family:var(--sans);font-size:.87rem;color:var(--ink-3);padding:.
 .block.cta{text-align:center;font-family:var(--sans);font-size:1.05rem;padding:1.2em;
   border:1px dashed var(--line-2);border-radius:var(--r-lg);background:#fff}
 .block.cta p{margin:0}
+/* delivery text (§5.2) — shown, labelled and set apart, in reading profiles */
+.block.narration{border-left:3px solid var(--line-2);background:var(--paper-2);
+  border-radius:0 var(--r) var(--r) 0;padding:1em 1.3em;color:var(--ink-2);font-style:italic}
+.block.narration::before{content:"Narration";display:block;font-family:var(--sans);font-style:normal;
+  font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.4em}
+.block.narration p:last-child{margin-bottom:0}
 
 /* media: ratios keep imagery from dominating the page */
 figure.hero img{width:100%;aspect-ratio:21/9;object-fit:cover}
@@ -92,6 +98,7 @@ section.region + section.region{border-top:1px solid var(--line)}
 .band .block.lead{color:var(--dark-ink-2)}
 .band blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
 .band .block.callout{background:#1b2932;border-left-color:#3f8f83}
+.band .block.narration{background:#1b2932;border-left-color:#3f8f83;color:var(--dark-ink-2)}
 .band .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
 .band .block.callout h3{color:#7fd6c8}
 .band .block.callout.warning h3{color:#e0a862}
@@ -182,6 +189,12 @@ const content = 'Markdown, not an executable template';</code></pre>
 <pre><code>
 This paragraph still belongs to the outer block. Only the real close below ends it.</code></pre></div>
 <div class="md"></div></section>
+<section class="region " id="spoken" data-preset=""><div class="md"><h1>The spoken layer</h1>
+<p>Some text is written to be <strong>spoken, not shown</strong> — a narration track, a read-aloud pass, a line the presenter delivers. Mark it <code>preset=narration</code> and it stays ordinary Markdown: same body, same close, same place in the tree. A renderer whose medium is <em>surfaces</em> (a slideshow, a printed deck) routes it to the delivery channel instead of drawing it; a reading renderer may surface it, labelled and set apart.</p></div>
+<aside class="block narration" data-preset="narration"><p>Aurora Desk is not a form. It is an invitation to look around.</p></aside>
+<div class="md"></div>
+<aside class="block narration" data-preset="narration"><p>Three steps, no instructions, no staff on the floor. That is the whole idea.</p></aside>
+<div class="md"><p>Two narrations share this section — <em>any</em> number may, and their source order is the delivery order. That is the one thing a section <code>var</code> cannot do, and the reason narration is a block family rather than a <code>var</code>. Deck configuration — voice, pace, language — is deliberately not text: it belongs to the frontmatter or a <code>var</code>, never to the block, which carries only its words. In a generic preview these two blocks read as ordinary paragraphs.</p></div></section>
 <section class="region " data-preset=""><div class="md"></div>
 <div class="md"><h1>Data with an explicit home</h1>
 <p>Named data has exactly two homes. Data about the <strong>document</strong> is frontmatter. Data about <strong>one section</strong> is a <code>var</code> inside that section. This section's <code>seconds</code> is independent of the visitor-journey section's <code>seconds</code>; nothing is inherited, nothing needs a scope flag.</p>

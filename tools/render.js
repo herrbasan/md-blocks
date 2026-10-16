@@ -263,12 +263,12 @@ function mdToHtml(lines) {
 
 /* ------------------------------------------------------------- profiles */
 
-const PRESET_BLOCK = { lead: 'lead', note: 'callout note', warning: 'callout warning', card: 'card', cta: 'cta', 'page-break': 'page-break' };
+const PRESET_BLOCK = { lead: 'lead', note: 'callout note', warning: 'callout warning', card: 'card', cta: 'cta', 'page-break': 'page-break', narration: 'narration' };
 
 /* §5.1 degradation. A profile that knows the preset's *family* may discard segments it does not
    implement (`gallery:row` → the gallery default); an unknown family must WARN and render plain.
    Silence here would read as "the format's player does nothing" rather than "this renderer is old". */
-const KNOWN_PRESET_FAMILIES = new Set(['card', 'note', 'warning', 'lead', 'cta', 'hero', 'gallery', 'image', 'band', 'cover', 'page-break']);
+const KNOWN_PRESET_FAMILIES = new Set(['card', 'note', 'warning', 'lead', 'cta', 'hero', 'gallery', 'image', 'band', 'cover', 'page-break', 'narration']);
 const presetWarnings = new Set();
 
 function presetNote(token) {
@@ -334,6 +334,10 @@ function blockHtml(block) {
     const cap = media.caption.length ? `<figcaption>${mdToHtml(media.caption)}</figcaption>` : '';
     return `${note}<figure class="${cls} media" data-preset="${p || ''}"><a href="${src(media.dest)}">${inner}</a>${cap}</figure>`;
   }
+  // Delivery text (§5.2): a reading profile surfaces it, labelled and set apart; a surface profile
+  // hides it (the deck rule below). The label is a ::before, so the block's own text stays verbatim —
+  // nothing is injected into the content a speech function would read.
+  if (family === 'narration') return `${note}<aside class="${cls}" data-preset="narration">${mdToHtml(block.body)}</aside>`;
   return `${note}<div class="${cls}" data-preset="${p || ''}">${mdToHtml(block.body)}</div>`;
 }
 
@@ -416,6 +420,12 @@ figcaption{font-family:var(--sans);font-size:.87rem;color:var(--ink-3);padding:.
 .block.cta{text-align:center;font-family:var(--sans);font-size:1.05rem;padding:1.2em;
   border:1px dashed var(--line-2);border-radius:var(--r-lg);background:#fff}
 .block.cta p{margin:0}
+/* delivery text (§5.2) — shown, labelled and set apart, in reading profiles */
+.block.narration{border-left:3px solid var(--line-2);background:var(--paper-2);
+  border-radius:0 var(--r) var(--r) 0;padding:1em 1.3em;color:var(--ink-2);font-style:italic}
+.block.narration::before{content:"Narration";display:block;font-family:var(--sans);font-style:normal;
+  font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.4em}
+.block.narration p:last-child{margin-bottom:0}
 
 /* media: ratios keep imagery from dominating the page */
 figure.hero img{width:100%;aspect-ratio:21/9;object-fit:cover}
@@ -445,6 +455,7 @@ section.region + section.region{border-top:1px solid var(--line)}
 .band .block.lead{color:var(--dark-ink-2)}
 .band blockquote{border-left-color:#3f8f83;color:var(--dark-ink-2)}
 .band .block.callout{background:#1b2932;border-left-color:#3f8f83}
+.band .block.narration{background:#1b2932;border-left-color:#3f8f83;color:var(--dark-ink-2)}
 .band .block.callout.warning{background:#2a2118;border-left-color:#c98a3e}
 .band .block.callout h3{color:#7fd6c8}
 .band .block.callout.warning h3{color:#e0a862}
@@ -548,6 +559,8 @@ body.deck{background:#0f1519;overflow:hidden}
 .slide .block.lead p{font-size:inherit}
 .slide .block.lead p,.slide .block.lead ul{max-width:46ch}
 .slide .block.callout{padding:.85em 1.1em}
+/* a surface renderer DELIVERS narration, it does not draw it (§5.2) */
+.slide .block.narration{display:none}
 .slide .block.card,.slide .col.card{padding:1.1em 1.2em;border-radius:12px;box-shadow:var(--sh-1)}
 .slide figure.hero{margin:0}
 .slide figure.hero img{aspect-ratio:21/9;max-height:290px}

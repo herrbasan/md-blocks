@@ -212,6 +212,32 @@ This paragraph still belongs to the outer block. Only the real close below ends 
 
 ---
 
+<!-- mb:section id=spoken label="The spoken layer" -->
+
+# The spoken layer
+
+Some text is written to be **spoken, not shown** — a narration track, a read-aloud pass, a line the
+presenter delivers. Mark it `preset=narration` and it stays ordinary Markdown: same body, same close,
+same place in the tree. A renderer whose medium is *surfaces* (a slideshow, a printed deck) routes it
+to the delivery channel instead of drawing it; a reading renderer may surface it, labelled and set
+apart.
+
+<!-- mb:block preset=narration label="Opening line" -->
+Aurora Desk is not a form. It is an invitation to look around.
+<!-- mb:/block -->
+
+<!-- mb:block preset=narration label="Second beat" -->
+Three steps, no instructions, no staff on the floor. That is the whole idea.
+<!-- mb:/block -->
+
+Two narrations share this section — *any* number may, and their source order is the delivery order.
+That is the one thing a section `var` cannot do, and the reason narration is a block family rather
+than a `var`. Deck configuration — voice, pace, language — is deliberately not text: it belongs to the
+frontmatter or a `var`, never to the block, which carries only its words. In a generic preview these
+two blocks read as ordinary paragraphs.
+
+---
+
 <!-- mb:var name=seconds value=20 -->
 
 # Data with an explicit home

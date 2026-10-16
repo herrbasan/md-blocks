@@ -20,6 +20,11 @@ One screen for the showroom. A clear invitation, room to be curious, and a way t
 the conversation afterwards.
 <!-- mb:/block -->
 
+<!-- mb:block preset=narration label="Welcome" -->
+Welcome. In the next twelve minutes: why the kiosk exists, what visitors actually do with it, and what
+ships in the first release.
+<!-- mb:/block -->
+
 ![Abstract artwork — launch plate](images/launch.jpg)
 
 ---
@@ -68,6 +73,14 @@ gets everyone to that point — on their own schedule.
 
 Three moves, shown here as cards. This slide carries its own data: the `reveal` var above
 drives the pacing in the slideshow renderer.
+
+<!-- mb:block preset=narration label="Journey — beat 1" -->
+Three steps, and none of them needs a member of staff.
+<!-- mb:/block -->
+
+<!-- mb:block preset=narration label="Journey — beat 2" -->
+Watch how the overview stays one action away the whole time.
+<!-- mb:/block -->
 
 <!-- mb:columns id=journey-cards label="Journey cards" -->
 <!-- mb:col preset=card -->
@@ -134,4 +147,9 @@ Set the quote, then let it breathe. Short slides are a feature.
 
 <!-- mb:block id=cta-block preset=cta label="Closing call to action" -->
 Questions now, or find us in the pilot channel: [#aurora-desk](https://example.com/aurora-desk).
+<!-- mb:/block -->
+
+<!-- mb:block preset=narration label="Closing line" -->
+One screen, no queue, a clear way to continue. That is the whole pitch — and we are ready to start the
+floor pilot in November.
 <!-- mb:/block -->
