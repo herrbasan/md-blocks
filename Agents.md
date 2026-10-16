@@ -105,12 +105,14 @@ implementer would have to guess, the spec is wrong, not the implementer.
 
 ## Status and next steps
 
-- **Spec v1.5, locked** (2026-09-20). Spec contains only format rules; history and decisions log
+- **Spec v1.6, locked** (2026-10-16). Spec contains only format rules; history and decisions log
   live in DECISIONS.md. v1.4 sharpened media: the class (`image` | `link`) is format law and is what a
   stamp pins; the `video`/`audio`/`file` refinement within the link class is profile data (§4.2, §6.2,
   §7). v1.5 gave the role of a media URL a token: `preset=player` asks for inline playback, and with no
   preset a link-class block stays the link the author wrote — the existing `link` family is the explicit
-  *don't embed* (§5.1). No parser, validator, renderer, or editor exists yet.
+  *don't embed* (§5.1). v1.6 added the `narration` family: `preset=narration` marks a block as delivery
+  text — spoken, not shown; any number per section, and source order is delivery order (§5.2). No parser,
+  validator, renderer, or editor exists yet.
 - Next: a zero-dependency JS parser/validator. Spec §10 (conformance cases) is the fixture list;
   §7 (validation) and §8 (round-trip contract) define its behavior. The archived test-runs are
   additional real-world fixtures.

@@ -1,6 +1,6 @@
 # MD-Blocks — Format Spec
 
-> **Status:** v1.5 (2026-09-20) — **locked**. This file contains only what is needed to understand
+> **Status:** v1.6 (2026-10-16) — **locked**. This file contains only what is needed to understand
 > the format. History, rationale, and the decisions log live in [DECISIONS.md](DECISIONS.md);
 > every change to this file is recorded there, with a version bump. Removed section numbers are
 > never reused, so external `§`-references stay valid.
@@ -31,6 +31,10 @@ Plain Markdown is content. No markup needed. The file starts inside section 1.
 Anything Markdown, as many paragraphs as you like.
 <!-- mb:/block -->
 
+<!-- mb:block preset=narration -->       ← delivery text: spoken, not shown (§5.2)
+Read aloud, verbatim. Any number per section; source order is delivery order.
+<!-- mb:/block -->
+
 <!-- mb:block preset=hero -->            ← a block that starts with an image is media
 ![Alt text](images/hero.svg)
 
@@ -56,6 +60,8 @@ Six directives: `main` `section` `block` `columns` `col` `var`. Two of them clos
 Three optional attributes shared by all structural directives: `id`, `label`, `preset`. One
 attribute turns an ordinary block into chrome: `repeat=header|footer` (§4.6).
 One separator: `---` between sections — the convention Marp, reveal-md and Deckset use for slides.
+
+One preset family is **delivery text** rather than display content: `preset=narration` (§5.2).
 
 That is the authoring surface. What distinguishes MD-Blocks is §6: **what the editor is required to
 write down** so that nothing the round-trip needs is left implicit.
@@ -371,6 +377,7 @@ Renderers should strive to emit **native semantic HTML5 elements** (`<section>`,
 | Family | Common Modifiers | Authored Markdown Shape | Semantic HTML5 Output | Renderer Intent |
 |---|---|---|---|---|
 | `card` | `note`<br>`warning`<br>`stat`<br>`quote`<br>`good`<br>`danger` | Paragraphs, headings, lists | Callout: `<aside role="note">`<br>Article: `<article>`<br>Quote: `<aside>` | Self-contained framed container.<br>`:note`, `:warning` apply contextual tint/border.<br>`:stat` = centered large numeric KPI callout.<br>`:quote` = editorial epigraph with attribution.<br>`:good`, `:danger` = recommendations / comparison cards. |
+| `narration` | *(none)* | Paragraphs (verbatim prose) | `<aside class="narration">` | **Delivery text — spoken, not shown.**<br>Any number may appear in a section; source order is delivery order.<br>Verbatim: no typographic pass, no injected label.<br>A surface renderer hides it by default; a reading renderer may surface it, labelled and set apart; a delivery renderer reads it per surface. |
 | `image` | `hero[:bleed]`<br>`contain`<br>`icon`<br>`left[:small]`<br>`right[:small]` | Single image + caption | `<figure class="media-image">`<br>`  <img ...>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Single media figure.<br>`:hero` = prominent banner (optional `:bleed` expands flush edge-to-edge).<br>`:contain` = fit within bounds without cropping.<br>`:icon` = compact badge sized to text height (feature callout row).<br>`:left`, `:right` = float media and wrap subsequent text prose around it (optional `:small` for compact ~25% portrait/badge). |
 | `gallery` | `featured`<br>`mosaic`<br>`row`<br>`masonry` | Image list + caption | `<figure class="media-gallery">`<br>`  <ul class="items">...</ul>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Collection of media items.<br>Default = responsive thumbnail grid.<br>`:featured` = first image prominent/lead + sub-grid.<br>`:mosaic` = asymmetric editorial layout (1 large + 2 stacked).<br>`:row` = single full-width row split evenly.<br>`:masonry` = multi-column vertical waterfall. |
 | `link` | `cta`<br>`download` | Single link or link list | `<nav class="actions">`<br>`  <a href="..." role="button">...</a>`<br>`</nav>` | Action item.<br>`:cta` = primary call-to-action button.<br>`:download` = file badge with download affordance.<br>On a link-class media block (§4.2) it is the explicit *don't embed*: the destination stays a reference. |
@@ -385,6 +392,34 @@ Optional `:bleed` is an orthogonal spatial modifier for blocks and sections that
 **A link-class media block starts as a link, and `player` is the deliberate act.** With no preset, a link-class block renders as the reference the author wrote — which is also exactly what a generic preview shows, so a profile that knows no vocabulary changes nothing. `preset=player` asks for inline playback instead. Which element carries it — a bare `<video>`, a player addon, its controls and poster — stays profile territory, exactly as the `page-break` row above is.
 
 Unknown *directive kind* or *attribute*: parse error. Composite editor palette entries are templates that expand into these primitives; they are not vocabulary.
+
+### 5.2 `narration` — the delivery channel
+
+`preset=narration` marks a block as **text the presentation delivers aloud** rather than content it
+shows: a TTS script, a read-aloud pass, a presenter's spoken line. The block is an ordinary block in
+every structural respect — same Markdown body, same close, same place in the tree — so the grammar does
+not change; only what a renderer *does* with it does.
+
+- **Any number may appear in a section.** Source order is delivery order. (Contrast `var`, whose names
+  are unique per section, and `mb:section`, which is once per section.) This is what lets one slide
+  carry several delivery steps without leaving the slide.
+- **The text is verbatim.** The renderer hands it on unchanged: no smart quotes, no typographic pass, no
+  label word injected. (Contrast `card:note`, where the *author* writes the label — here the author
+  writes everything, because the eventual reader is a machine.)
+- **Narration is not display content.** A renderer whose medium is *surfaces* (a slideshow, a printed
+  deck) hides it by default: it belongs to the delivery channel, not the slide, the way speaker notes
+  do. A renderer whose medium is *reading* (continuous document flow) may surface it — labelled and set
+  apart — rather than drop it, because dropping it would make that renderer lossier than a generic
+  preview, which cannot see the directive and shows the text as ordinary prose (§4.4, the same rule).
+- **Delivery configuration is not text.** Which voice, pace, or language is deck configuration, not
+  content: it belongs to the document (frontmatter) or the section (a `var`), never to the block. The
+  block carries its text and the shared attributes only.
+- **A delivery affordance is profile territory.** A profile with a speech function registered may offer
+  a control on the block (play / pause). The format says nothing about it, exactly as it says nothing
+  about a player's controls (§5.1, `player`).
+- **Unknown-family fallback is clean prose.** Because a narration is authored as ordinary Markdown, a
+  profile that does not know the family renders it as readable prose and warns (§5, item 5) — never a
+  broken layout.
 
 ### Frontmatter: stored, not interpreted
 
@@ -558,6 +593,9 @@ Each fixture is source + expected tree + expected generic/enhanced behavior, inc
 | `[![poster](p.jpg)](film.mp4)` alone in a block | one block, kind `video`; the image is the poster, not the media |
 | Link-class media block with no preset | renders as a link — the authored shape is the default |
 | `preset=player` on a single audio link | inline playback, caption below |
+| `preset=narration` block alone in a section | delivery text: plain prose in a generic preview; hidden by a surface renderer; surfaced (labelled) by a reading renderer |
+| Three `preset=narration` blocks in one section | three narrations, read in source order |
+| `preset=narration` in a profile that does not know the family | plain prose + renderer warning — no structural change |
 | `preset=player` on a flat list of audio links | playlist treatment; the list form is preserved |
 | `preset=player` on a `kind=file` destination | renderer warning, plain link |
 | Flat list of audio links | link-class media block, kind `audio`, list form |

@@ -1,6 +1,6 @@
 # MD-Blocks — Authoring Brief
 
-Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.5, locked) — read it when you need depth;
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.6, locked) — read it when you need depth;
 [demo/showcase.md](demo/showcase.md) is the tutorial.
 
 One example with every feature:
@@ -21,6 +21,10 @@ Plain Markdown needs no markup. The file starts inside section 1.
 
 <!-- mb:block preset=card:note -->     ← block: a movable, presentable unit
 Anything Markdown — paragraphs, lists, tables, code.
+<!-- mb:/block -->
+
+<!-- mb:block preset=narration -->    ← delivery text: spoken, not shown (§5.2)
+Any number per section; source order is delivery order. Read aloud verbatim.
 <!-- mb:/block -->
 
 <!-- mb:block preset=image:hero -->    ← first node is an image → media block
@@ -66,6 +70,10 @@ Right column.
   `file`. A video's poster is a linked image: `[![poster](poster.jpg)](film.mp4)`. An image later in a
   block is just an inline image. `preset=player` asks for inline playback; with no preset a link stays
   the link the author wrote, and `link:download` marks a reference with a download affordance.
+- **Narration:** `preset=narration` marks a block as **delivery text** — spoken aloud (TTS / read-aloud),
+  never shown. Any number may appear in a section; source order is delivery order. The text is verbatim:
+  no typographic pass, no label injected. A slideshow renderer hides it by default; a reading renderer may
+  surface it labelled. Which voice or pace is deck configuration (frontmatter, or a `var`), never the block.
 - **Columns:** number of `col` markers = column count (min 2); `weights` must have exactly that many
   entries. Columns hold Markdown and blocks, never sections or vars.
 - **Vars:** section-level named data — either `value=` inline or one fenced `json` / `text` block

@@ -22,6 +22,7 @@
 | 2026-09-11 | **Chrome scope decided (spec v1.3)**: a `main` level above sections — the unit a renderer fragments into surfaces and the unit that owns chrome. Marked by a **break**, not an open/close pair: settled by a three-model authoring test (`_Archive/test-runs/main-marker/`) rather than by argument, after two consulted models split on the question. `preset` on a main names the treatment of its surfaces. `mb:/col` legalised. Supersedes the 2026-09-10 header/footer decision. |
 | 2026-09-20 | **Media class vs refinement decided (spec v1.4)**: the media *class* (`image` | `link`) is format law and is what a stamped `kind` pins; the `video` / `audio` / `file` refinement inside the link class is **profile data**. Raised while reviewing how audio and video are supported, against the renderer's behaviour. |
 | 2026-09-20 | **The role of a media URL gets a token (spec v1.5)**: `preset=player` asks for inline playback; with no preset a link-class media block stays the link the author wrote. The existing `link` family carries the other role. One new token, no new grammar. |
+| 2026-10-16 | **Narration family added (spec v1.6)**: `preset=narration` marks a block as delivery text — spoken, not shown. Chosen as its own family over a `card:narration` modifier (which would turn a card's modifier into a change of purpose rather than appearance, and degrade into a visible frame) and over a section `var` (which cannot hold several narrations per section). No new grammar: one vocabulary row and one new subsection (§5.2). |
 
 ## The ranking was biased — and why we trusted the test instead
 
@@ -75,6 +76,7 @@ The right answer was not a winner but a merge.
 | Main marker form | **A break: `mb:main` opens a scope, which ends at the next one or at EOF** | An open/close pair mirroring `block`/`columns` | Measured, not argued. Three models each followed the form they were shown (6/6 valid), and **none** wrote a close when the example used a break — so the predicted cost ("models will write `mb:/main` and be right") does not exist, while the pair's document-spanning unclosed state does. It also matches the structural rule already in force: nested containers close with a pair, siblings in a sequence are delimited by a break. |
 | `preset` on a main | **Names the treatment of the surfaces that main produces** | Forbidden on a main; a separate scope-level vocabulary | The same relationship chrome already has — authored once on the scope, applied per surface — so no second concept enters the format. A section's preset addresses the *content region*, so the two never cascade and §4.1's non-inheritance law is untouched. Forbidding it would also turn a natural guess into a parse error, since unknown attributes fail loud. |
 | Column close | **`mb:/col` accepted as the same boundary, written explicitly** | Error, as v1.2 implied | All three models in the test's control condition wrote it, unprompted. With `col` defined as a bare marker only, the spec would reject most first-pass decks over a construct nobody questioned — the format's own rule is that when an author would have to guess, the spec is wrong, not the author. |
+| Narration | **Its own preset family, `preset=narration`** | A `card:narration` modifier; a section `var`; a new `mb:narration` directive | Narration is a *role*, not a frame treatment: every `card` modifier restyles the same framed container, while narration changes what the content *is* (delivery text, never shown). As a modifier it also degrades into the worst failure — an unknown modifier is dropped, so a profile that knows `card` would render the TTS script as a visible framed card on the slide; as a family it degrades to plain prose. A `var` is the honest alternative (data, not content) but holds one payload per name, so a slide could not carry several narration steps. A new directive was rejected: the six-directive set is deliberately minimal, and a family rides existing machinery — element mapping, class emission, degradation, editor palette — with no grammar change. |
 
 ## The round-trip argument (why B's strictness survived the merge)
 
@@ -219,6 +221,24 @@ in comments and leaves the Markdown alone."*
     reference, link class + `player` = embedded, no third concept. Not measured: whether a model shown
     only the showcase would guess `player`; the format's own precedent for naming decisions is a
     three-model authoring test (see entry 10), so that check is still owed.
+15. **Narration — its own family** (2026-10-16, v1.6): `preset=narration` marks a block as **delivery
+    text** — spoken aloud, never shown. Three shapes were weighed. A `card:narration` modifier was
+    rejected as a category error inside the taxonomy: every other `card` modifier restyles the same
+    framed container, while narration changes what the content *is*, and it degrades into the worst
+    failure — an unknown modifier is *dropped*, so a profile that knows `card` would fall back to the base
+    treatment and render the TTS script as a visible framed card on the slide. A section `var` was the
+    honest runner-up (`var` is already "data, never content", and §4.4 already accepts that a generic
+    preview shows the payload), but a var holds one payload per name, so a slide could not carry several
+    narration steps. A new `mb:narration` directive was rejected because the six-directive set is
+    deliberately minimal and a family rides machinery that already exists — element mapping, class
+    emission, the degradation ladder, the editor palette — with no grammar change. As a family it degrades
+    to clean prose (the block *is* Markdown), the one fallback a generic preview can always honour. Two
+    sub-rules are format law, not renderer policy, and are settled here: **any number per section** (source
+    order is delivery order — the reason the family beat the var), and **verbatim text** (no typographic
+    pass, no injected label). What a given renderer *does* with it — a surface renderer hiding it by
+    default, a reading renderer surfacing it labelled, a delivery renderer reading it to a speech function
+    — is stated as intent in §5.2 but stays profile territory, the same division `player` and `page-break`
+    already have.
 
 ## Where the evidence lives
 
