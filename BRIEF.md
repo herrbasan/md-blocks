@@ -1,6 +1,6 @@
 # MD-Blocks — Authoring Brief
 
-Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.6, locked) — read it when you need depth;
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.7, locked) — read it when you need depth;
 [demo/showcase.md](demo/showcase.md) is the tutorial.
 
 One example with every feature:
@@ -74,6 +74,8 @@ Right column.
   never shown. Any number may appear in a section; source order is delivery order. The text is verbatim:
   no typographic pass, no label injected. A slideshow renderer hides it by default; a reading renderer may
   surface it labelled. Which voice or pace is deck configuration (frontmatter, or a `var`), never the block.
+  A block may carry `audio=URL`, a pre-rendered recording of its own text; the text remains the transcript
+  and the fallback. A section's narration plays as one sequence of its blocks, recordings preferred.
 - **Columns:** number of `col` markers = column count (min 2); `weights` must have exactly that many
   entries. Columns hold Markdown and blocks, never sections or vars.
 - **Vars:** section-level named data — either `value=` inline or one fenced `json` / `text` block
