@@ -23,6 +23,8 @@
 | 2026-09-20 | **Media class vs refinement decided (spec v1.4)**: the media *class* (`image` | `link`) is format law and is what a stamped `kind` pins; the `video` / `audio` / `file` refinement inside the link class is **profile data**. Raised while reviewing how audio and video are supported, against the renderer's behaviour. |
 | 2026-09-20 | **The role of a media URL gets a token (spec v1.5)**: `preset=player` asks for inline playback; with no preset a link-class media block stays the link the author wrote. The existing `link` family carries the other role. One new token, no new grammar. |
 | 2026-10-16 | **Narration family added (spec v1.6)**: `preset=narration` marks a block as delivery text — spoken, not shown. Chosen as its own family over a `card:narration` modifier (which would turn a card's modifier into a change of purpose rather than appearance, and degrade into a visible frame) and over a section `var` (which cannot hold several narrations per section). No new grammar: one vocabulary row and one new subsection (§5.2). |
+| 2026-10-19 | **Narration recordings added (spec v1.7)**: a narration block may carry `audio=URL`, the pre-rendered delivery of its own text. The text stays authoritative (transcript and fallback); the recording is a per-block artifact, not deck delivery configuration. Delivery is a sequence of blocks — recordings preferred, text synthesized for blocks without one. |
+| 2026-10-23 | **Multi-speaker narration + open attribute channel (spec v1.8)**: the narration modifier slot carries a speaker identifier (`preset=narration:<id>`); narration blocks may carry `name="…"` (display name, repeated per block by design); the attribute key grammar gains an open `data:` namespace — `data:` keys parse, round-trip preserved, never interpreted by base profiles; bare keys stay closed so typos fail loud. |
 
 ## The ranking was biased — and why we trusted the test instead
 
@@ -69,6 +71,7 @@ The right answer was not a winner but a merge.
 | Presentation hook | **`preset` (single semantic token)** | Free `class` strings | Free classes are HTML in disguise — presentation smuggled into source. Presets name intent; a renderer profile maps them to treatment. |
 | Self-closing single-node block | **Rejected** | A second block form for the common one-node case | Round-2 test: models handle the full open/close form without errors. A second form buys one line at the cost of a second rule. Revisit only if real authoring data says otherwise. |
 | Unknown things | **Kinds/attributes/duplicates = errors; unknown presets = renderer warning** | Silent ignore; everything an error | Typos must fail loud (that's what the `mb:` prefix is for — author comments stay possible). Presets are renderer concerns, so they degrade visibly, not fatally. |
+| Custom attributes (v1.8) | **Open `data:` namespace (`data:key=value`); bare keys stay closed** | Freeform bare keys (HTML's legacy model); everything closed, no exceptions | HTML's own fix, borrowed: an open channel the spec promises never to claim. Bare keys stay closed so a typo'd spec key fails loud — load-bearing for LLM authors. Colon spelling matches the format's own `mb:` namespacing and keeps the property boundary unambiguous under hyphens. Growth discipline: a new bare attribute must argue why no existing channel (preset token, frontmatter, var, body) can carry it. |
 | Page breaks (print/PDF) | **Section = page unit; `preset=page-break` empty block for forced breaks** | A `mb:page` separator/directive; `break=` attribute (now) | A page is a *viewport* decision (A4 vs Letter vs slide can break differently) — renderer-profile territory, not source structure. Same section-per-viewport law as slides. `break=` (`inside-avoid` etc.) deferred until a renderer asks with evidence (spec §9.6). |
 | Shared header/footer — *superseded 2026-09-11 by the `main` scope + `repeat`; see the decisions log* | **Frontmatter `header`/`footer` keys (plain strings)** | `mb:header` / `mb:footer` directives; a `chrome` block | Two kinds of chrome, only one authorable. **Derived** chrome (page numbers, slide counts, progress, running heads from section titles) must stay renderer-computed — authoring "page 3 of 12" is the same redundancy trap as a `count=` on `columns`. **Authored** chrome (legal line, client name) is document data, so frontmatter already holds it, needs no grammar, and stays out of the movable body — an editor must never let a user drag a footer into a section. A directive would import viewport/positioning concerns into the authoring surface, the reason `class`/`style` are absent (spec §5, §9.7). |
 | "No format used at all" | **Informational diagnostic, not an error** | Reject; ignore | Round-1 lesson (weak model wrote format-free Markdown that validated clean). A document with frontmatter but zero directives is valid prose — but the editor must *surface* it, because silence is how empty structure ships (§7 validation table). |
@@ -77,6 +80,7 @@ The right answer was not a winner but a merge.
 | `preset` on a main | **Names the treatment of the surfaces that main produces** | Forbidden on a main; a separate scope-level vocabulary | The same relationship chrome already has — authored once on the scope, applied per surface — so no second concept enters the format. A section's preset addresses the *content region*, so the two never cascade and §4.1's non-inheritance law is untouched. Forbidding it would also turn a natural guess into a parse error, since unknown attributes fail loud. |
 | Column close | **`mb:/col` accepted as the same boundary, written explicitly** | Error, as v1.2 implied | All three models in the test's control condition wrote it, unprompted. With `col` defined as a bare marker only, the spec would reject most first-pass decks over a construct nobody questioned — the format's own rule is that when an author would have to guess, the spec is wrong, not the author. |
 | Narration | **Its own preset family, `preset=narration`** | A `card:narration` modifier; a section `var`; a new `mb:narration` directive | Narration is a *role*, not a frame treatment: every `card` modifier restyles the same framed container, while narration changes what the content *is* (delivery text, never shown). As a modifier it also degrades into the worst failure — an unknown modifier is dropped, so a profile that knows `card` would render the TTS script as a visible framed card on the slide; as a family it degrades to plain prose. A `var` is the honest alternative (data, not content) but holds one payload per name, so a slide could not carry several narration steps. A new directive was rejected: the six-directive set is deliberately minimal, and a family rides existing machinery — element mapping, class emission, degradation, editor palette — with no grammar change. |
+| Narration recording | **`audio=URL` on the narration block** | A `var` mapping block ids → files; frontmatter keys; a separate `player` block | A recording is bound to one block's exact words — the pairing *is* the information, so only the block can state it without a second lookup that can drift. Voice and pace remain deck configuration; a recording is an artifact, not a setting. A separate player block would render on the surface and decouple the audio from its script; a var map makes the common case (one script, one recording) require an id plus a lookup. |
 
 ## The round-trip argument (why B's strictness survived the merge)
 
@@ -239,6 +243,29 @@ in comments and leaves the Markdown alone."*
     default, a reading renderer surfacing it labelled, a delivery renderer reading it to a speech function
     — is stated as intent in §5.2 but stays profile territory, the same division `player` and `page-break`
     already have.
+16. **Multi-speaker narration, `name=`, and the `data:` channel** (2026-10-23, v1.8): three changes from
+    one need — a blog post that is a two-voice dialogue (transcript rendered as audio). (a) The narration
+    **modifier slot carries a speaker identifier** (`preset=narration:david-a-renelt`). v1.7 assumed one
+    voice per document ("delivery configuration is not text"); that rule stands — which voice or engine
+    renders a speaker is still configuration, bound at generation time, never in the block — but speaker
+    *identity* is content, the way dialogue attribution is content. Alternatives rejected: a custom
+    attribute for the id (the preset modifier is the spec's designed-growth channel and needs no grammar
+    change); a new visible `voice:` family (duplicates the delivery channel §5.2 already owns); frontmatter
+    role maps (break block portability — a copied block must carry who it is). (b) **`name="…"`** on
+    narration blocks carries the display name, repeated per block *by design*: blocks are the movable unit
+    and stay self-contained under copy/paste; portability and guessability beat repetition. The same id
+    with conflicting names is a validation error — redundancy that can disagree must fail loud, not be
+    resolved by position (no first-wins rules; blocks move). (c) The **`data:` open attribute namespace**:
+    the question "why can't a block carry arbitrary key=value like a `div`" surfaced that the closed bare
+    set had no escape hatch. HTML's answer was `data-*`; the format respells it `data:key` to match its own
+    `mb:` colon namespacing and to keep the property boundary unambiguous under hyphens. `data:` keys
+    parse, are preserved on round-trip, and are never interpreted by base profiles; only the `data` prefix
+    is open — future prefixes are claimed by the spec, never by documents, so a later spec version can
+    introduce `foo:` semantics without documents having already invented them. The design conversation
+    also surfaced the growth rule now stated with the key decisions: a new bare attribute must argue why
+    no existing channel (preset token, frontmatter, var, body) can carry it — `name=` passed (preset token
+    breaks on names containing `:`; frontmatter breaks portability), which is what earned it a place in
+    the closed set.
 
 ## Where the evidence lives
 

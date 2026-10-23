@@ -1,6 +1,6 @@
 # MD-Blocks — Format Spec
 
-> **Status:** v1.6 (2026-10-16) — **locked**. This file contains only what is needed to understand
+> **Status:** v1.8 (2026-10-23) — **locked**. This file contains only what is needed to understand
 > the format. History, rationale, and the decisions log live in [DECISIONS.md](DECISIONS.md);
 > every change to this file is recorded there, with a version bump. Removed section numbers are
 > never reused, so external `§`-references stay valid.
@@ -123,7 +123,11 @@ key=12  key=true  key=null                              → number / boolean / n
 key=[2,1]  key={"x":0.5,"y":0.3}                        → strict JSON, no spaces unless quoted
 ```
 
-Keys match `[a-z][a-z0-9_-]*`. Duplicate keys are errors. A value starting with `"`, `[` or `{` must be
+Keys match `[a-z][a-z0-9_-]*`, optionally with a namespace prefix: `data:<key>`. The `data:`
+namespace is **open** — any key under it parses, is preserved on round-trip, and is never interpreted
+by base profiles. Bare unknown keys remain errors (typos fail loud); unknown prefixes other than
+`data` are errors — future prefixes are claimed by the spec, never by documents. Duplicate keys are
+errors. A value starting with `"`, `[` or `{` must be
 valid JSON — malformed structured data is not reinterpreted as a string. Raw `<` or `>` in a value is an
 error (use the JSON escapes \u003c and \u003e in a JSON string) — a value can never
 escape the comment.
@@ -136,6 +140,7 @@ escape the comment.
 | `label` | string | Editor-only name. Never rendered, never a substitute for content. |
 | `preset` | token (colon-delimited: `family[:modifier[:variant]]`) | Semantic presentation hint interpreted by a renderer profile (§5). Bare token or quoted string. |
 No `class`, `style`, `width`, `color`. Presentation lives in the renderer's preset table.
+Custom attributes live in the open `data:` namespace (§3).
 
 ---
 
@@ -377,7 +382,7 @@ Renderers should strive to emit **native semantic HTML5 elements** (`<section>`,
 | Family | Common Modifiers | Authored Markdown Shape | Semantic HTML5 Output | Renderer Intent |
 |---|---|---|---|---|
 | `card` | `note`<br>`warning`<br>`stat`<br>`quote`<br>`good`<br>`danger` | Paragraphs, headings, lists | Callout: `<aside role="note">`<br>Article: `<article>`<br>Quote: `<aside>` | Self-contained framed container.<br>`:note`, `:warning` apply contextual tint/border.<br>`:stat` = centered large numeric KPI callout.<br>`:quote` = editorial epigraph with attribution.<br>`:good`, `:danger` = recommendations / comparison cards. |
-| `narration` | *(none)* | Paragraphs (verbatim prose) | `<aside class="narration">` | **Delivery text — spoken, not shown.**<br>Any number may appear in a section; source order is delivery order.<br>Verbatim: no typographic pass, no injected label.<br>A surface renderer hides it by default; a reading renderer may surface it, labelled and set apart; a delivery renderer reads it per surface. |
+| `narration` | `<speaker>`<br>`audio=URL`<br>`name="…"` | Paragraphs (verbatim prose) | `<aside class="narration" data-audio="URL">` | **Delivery text — spoken, not shown.**<br>Any number may appear in a section; source order is delivery order.<br>Verbatim: no typographic pass, no injected label.<br>A surface renderer hides it by default; a reading renderer may surface it, labelled and set apart; a delivery renderer reads it per surface.<br>`audio=` names a pre-rendered recording of *this block's* text (§5.2); the text stays authoritative. |
 | `image` | `hero[:bleed]`<br>`contain`<br>`icon`<br>`left[:small]`<br>`right[:small]` | Single image + caption | `<figure class="media-image">`<br>`  <img ...>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Single media figure.<br>`:hero` = prominent banner (optional `:bleed` expands flush edge-to-edge).<br>`:contain` = fit within bounds without cropping.<br>`:icon` = compact badge sized to text height (feature callout row).<br>`:left`, `:right` = float media and wrap subsequent text prose around it (optional `:small` for compact ~25% portrait/badge). |
 | `gallery` | `featured`<br>`mosaic`<br>`row`<br>`masonry` | Image list + caption | `<figure class="media-gallery">`<br>`  <ul class="items">...</ul>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Collection of media items.<br>Default = responsive thumbnail grid.<br>`:featured` = first image prominent/lead + sub-grid.<br>`:mosaic` = asymmetric editorial layout (1 large + 2 stacked).<br>`:row` = single full-width row split evenly.<br>`:masonry` = multi-column vertical waterfall. |
 | `link` | `cta`<br>`download` | Single link or link list | `<nav class="actions">`<br>`  <a href="..." role="button">...</a>`<br>`</nav>` | Action item.<br>`:cta` = primary call-to-action button.<br>`:download` = file badge with download affordance.<br>On a link-class media block (§4.2) it is the explicit *don't embed*: the destination stays a reference. |
@@ -414,6 +419,29 @@ not change; only what a renderer *does* with it does.
 - **Delivery configuration is not text.** Which voice, pace, or language is deck configuration, not
   content: it belongs to the document (frontmatter) or the section (a `var`), never to the block. The
   block carries its text and the shared attributes only.
+- **Multi-speaker delivery.** The modifier slot carries a speaker identifier:
+  `preset=narration:david-a-renelt` — a safe slug in token charset. The identifier is *content*: it
+  names who speaks, the way dialogue attribution does; it says nothing about how speech is produced.
+  Which voice, engine, pace, or recording renders a speaker stays configuration (the rule above),
+  bound at generation time, never in the block. A narration block may carry an optional `name="…"`
+  attribute — the display name for its speaker, repeated per block by design so blocks stay
+  self-contained under copy/paste. `name` is valid only on narration blocks; the same speaker id
+  with conflicting `name` values is a validation error. Renderers fall back to the bare id, with a
+  warning. Delivery order remains source order across all speakers.
+- **A recording belongs to its block (`audio=URL`).** A narration block may carry the recorded delivery
+  of its own words. The text is never replaced: it stays the script of record — transcript, accessible
+  alternative, and what a delivery profile speaks when there is no recording, when the recording cannot
+  be played, or when that profile prefers live speech. `audio` is therefore not deck configuration: a
+  voice or a pace is a setting, a recording is an artifact of *this* block's text. The attribute is
+  valid only on a narration block; it does not make the block media and is never shown on a surface.
+  Relative destinations resolve against the document's location, exactly as media destinations do
+  (§4.2). Which destinations a profile can play is profile data, as with `player` (§5.1).
+- **Delivery order is the sequence, not the block.** Narration blocks in a section are delivered in
+  source order. A profile that offers a section-level control plays them as one sequence — each block's
+  recording when it has one, its text through the speech function when it does not — and the sequence
+  completes only when the last one ends. A per-block control plays only its own block. A recording that
+  fails to load is a warning naming its destination, and that block falls back to speech; it never
+  aborts the sequence.
 - **A delivery affordance is profile territory.** A profile with a speech function registered may offer
   a control on the block (play / pause). The format says nothing about it, exactly as it says nothing
   about a player's controls (§5.1, `player`).
@@ -504,7 +532,11 @@ Fail loud, with source range, stable code, message, expected form. Never guess.
 
 | Condition | Result |
 |---|---|
-| Unknown `mb:` kind, unknown attribute, duplicate key, malformed value | error at marker |
+| Unknown `mb:` kind, unknown bare attribute (see `data:` in §3), duplicate key, malformed value | error at marker |
+| `audio` on a block without `preset=narration`, or `audio` with an empty value | error at marker |
+| `name` on a block without `preset=narration…`, or `name` with an empty value | error at marker |
+| Same speaker id with conflicting `name` values in one document | error with both locations |
+| `data:` key with empty property name | error at marker |
 | Directive inside list/quote; `mb:` marker inside a block; nested `block`/`columns` | error at marker |
 | Unclosed `block`/`columns` | error at EOF or at the offending structural marker, citing the opener |
 | Stray `/block`, `/columns`, `col` outside columns | error with location |
@@ -608,3 +640,8 @@ Each fixture is source + expected tree + expected generic/enhanced behavior, inc
 | Frontmatter not at line 1 | `---` is a section break; following YAML is a paragraph |
 | Same var name in two sections | valid, distinct |
 | Document with frontmatter and no directives | valid; informational "no structure" diagnostic |
+| `preset=narration:alice` followed by `preset=narration:bob` | two narrations, two speakers, source order |
+| Narration with unknown speaker modifier | renderer warning, identifier surfaced as-is, delivery unaffected |
+| `name="David"` on a narration block | display name for its speaker id |
+| `name=` on a non-narration block | error at marker |
+| `data:foo=1` on a block | parsed, preserved on round-trip, ignored by renderers |
