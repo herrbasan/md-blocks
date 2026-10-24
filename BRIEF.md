@@ -1,6 +1,6 @@
 # MD-Blocks — Authoring Brief
 
-Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.7, locked) — read it when you need depth;
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.8, locked) — read it when you need depth;
 [demo/showcase.md](demo/showcase.md) is the tutorial.
 
 One example with every feature:
@@ -61,7 +61,9 @@ Right column.
   Several blocks may share a slot — the first sizes the strip, the rest overlay it in source order.
 - Attributes on the opening line only: `key=word`, `key="with spaces"`, `key=12`, `key=[2,1]`
   (strict JSON). Shared optional attributes: `id`, `label`, `preset`. No `class` / `style` / `width` —
-  presentation lives in the renderer's preset table.
+  presentation lives in the renderer's preset table. Custom attributes go in the one open namespace,
+  `data:<key>`: any `data:` key parses, survives round-trip, and is never interpreted by base profiles.
+  Bare unknown keys and any other prefix remain errors.
 - **Blocks** hold Markdown only — no nested blocks, columns, or vars — and are always closed.
   A `---` inside a block is an `<hr>`, not a section break.
 - **Media blocks:** a block whose first node is a single image (or a flat list of images, or a link
@@ -76,6 +78,12 @@ Right column.
   surface it labelled. Which voice or pace is deck configuration (frontmatter, or a `var`), never the block.
   A block may carry `audio=URL`, a pre-rendered recording of its own text; the text remains the transcript
   and the fallback. A section's narration plays as one sequence of its blocks, recordings preferred.
+  **Speakers:** the modifier slot names who speaks — `preset=narration:<speaker-id>`, a safe slug, e.g.
+  `preset=narration:david`. The id is content (who speaks); voice, engine, pace and recording stay
+  generation-time configuration, never in the block. A narration block may also carry `name="…"`, the
+  display name for its speaker — repeated per block by design, so blocks stay self-contained under
+  copy/paste. `name` is valid only on narration blocks, and one speaker id with conflicting names is a
+  validation error. Source order stays delivery order across all speakers.
 - **Columns:** number of `col` markers = column count (min 2); `weights` must have exactly that many
   entries. Columns hold Markdown and blocks, never sections or vars.
 - **Vars:** section-level named data — either `value=` inline or one fenced `json` / `text` block
