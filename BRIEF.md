@@ -1,6 +1,6 @@
 # MD-Blocks — Authoring Brief
 
-Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.8, locked) — read it when you need depth;
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.9, locked) — read it when you need depth;
 [demo/showcase.md](demo/showcase.md) is the tutorial.
 
 One example with every feature:

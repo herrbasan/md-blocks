@@ -1,6 +1,6 @@
 # MD-Blocks — Format Spec
 
-> **Status:** v1.8 (2026-10-23) — **locked**. This file contains only what is needed to understand
+> **Status:** v1.9 (2026-11-03) — **locked**. This file contains only what is needed to understand
 > the format. History, rationale, and the decisions log live in [DECISIONS.md](DECISIONS.md);
 > every change to this file is recorded there, with a version bump. Removed section numbers are
 > never reused, so external `§`-references stay valid.
@@ -253,10 +253,9 @@ Markdown and blocks.
 <!-- mb:/columns -->
 ```
 
-- `columns` is a container, closed by `<!-- mb:/columns -->`. Only blank lines and or
-  `<!-- mb:/col -->` is accepted as the same boundary written explicitly — it is the same
-  structure, so it parses identically and is preserved as authored.dinary comments may
-  appear before the first `col`.
+- `columns` is a container, closed by `<!-- mb:/columns -->`. Only blank lines and ordinary comments
+  may appear before the first `col`. `<!-- mb:/col -->` is accepted as the same boundary written
+  explicitly — it is the same structure, so it parses identically and is preserved as authored.
 - The **number of `col` markers is the column count**, minimum 2. `weights` (optional JSON array of
   positive numbers) must have exactly that many entries; default equal. Authored values are preserved,
   not normalized.
@@ -458,9 +457,6 @@ agree on a spelling before they can interoperate:
 | Key | Meaning |
 |---|---|
 | `header` | Running head — chrome text for the top of a page, sheet, or slide |
-| `mb:/main` | error at marker — a main has no closing form; it ends at the next main or EOF (§4.5) |
-| `mb:main` inside a `block` or `columns` | error at marker — a main is document level |
-| `repeat` with a value other than `header`/`footer`, or on `columns`/`col` | error at marker |
 | `footer` | Running foot — chrome text for the bottom |
 
 Both are plain strings, rendered by the profile in whatever way suits its medium. Authoring them as
@@ -516,9 +512,9 @@ content; two editor versions never disagree about the tree.
 
 ### 6.4 What the editor never does
 
-- Never me
+- Never merge two explicit blocks; never split an implicit run (it writes `block` boundaries instead).
 - Never drop a `main` break: removing one merges two chrome scopes and re-chromes everything between
-  them without the file saying so.rge two explicit blocks; never split an implicit run (it writes `block` boundaries instead).
+  them without the file saying so.
 - Never insert content between a `var` marker and its fence.
 - Never reorder or reflow a Markdown body it didn't edit; editing block A must not rewrite the bytes of
   block B.
@@ -538,6 +534,9 @@ Fail loud, with source range, stable code, message, expected form. Never guess.
 | Same speaker id with conflicting `name` values in one document | error with both locations |
 | `data:` key with empty property name | error at marker |
 | Directive inside list/quote; `mb:` marker inside a block; nested `block`/`columns` | error at marker |
+| `mb:/main` | error at marker — a main has no closing form; it ends at the next main or EOF (§4.5) |
+| `mb:main` inside a `block` or `columns` | error at marker — a main is document level |
+| `repeat` with a value other than `header`/`footer`, or on `columns`/`col` | error at marker |
 | Unclosed `block`/`columns` | error at EOF or at the offending structural marker, citing the opener |
 | Stray `/block`, `/columns`, `col` outside columns | error with location |
 | `columns` with < 2 cols; `weights` length ≠ col count; nonpositive weight | error at `columns` marker |
