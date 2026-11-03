@@ -270,6 +270,7 @@ const PRESET_BLOCK = { lead: 'lead', note: 'callout note', warning: 'callout war
    Silence here would read as "the format's player does nothing" rather than "this renderer is old". */
 const KNOWN_PRESET_FAMILIES = new Set(['card', 'note', 'warning', 'lead', 'cta', 'hero', 'gallery', 'image', 'band', 'cover', 'page-break', 'narration']);
 const presetWarnings = new Set();
+const teaserWarnings = new Set();
 
 function presetNote(token) {
   if (!token) return '';
@@ -279,6 +280,21 @@ function presetNote(token) {
   return `<!-- unknown preset "${token}" — rendered plain (§5.1) -->`;
 }
 const MEDIA_EXT = /\.(mp4|webm|mov|mp3|wav|ogg|m4a|pdf|zip)$/i;
+
+/* §5.1 teaser convention: the last node of a `card:teaser` is its destination when it is a paragraph
+   holding exactly one link. Returns the offset of that paragraph in the body, or null for an
+   ordinary card — prose, a list, no link, or several links all stay valid and unchanged. */
+function teaserDestination(body) {
+  let end = body.length - 1;
+  while (end >= 0 && body[end].trim() === '') end--;
+  if (end < 0) return null;
+  let start = end;
+  while (start > 0 && body[start - 1].trim() !== '') start--;
+  const para = body.slice(start, end + 1);
+  if (/^\s*(#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\||```|~~~|<!--)/.test(para[0])) return null;
+  const links = para.join('\n').replace(/!\[[^\]]*\]\([^)]*\)/g, '').match(/\[[^\]]*\]\([^)]+\)/g) || [];
+  return links.length === 1 ? { start } : null;
+}
 
 function classifyBlock(block) {
   const body = block.body.filter(l => l.trim() !== '');
@@ -314,8 +330,10 @@ function blockHtml(block) {
   const p = block.attrs.preset;
   if (p === 'page-break') return `<div class="page-break" data-preset="page-break"></div>`;
   const note = presetNote(p);
-  const family = String(p || '').split(':')[0];
-  const cls = ['block', PRESET_BLOCK[p] || ''].filter(Boolean).join(' ');
+  const token = String(p || '');
+  const family = token.split(':')[0];
+  const modifier = token.split(':')[1] || '';
+  const cls = ['block', PRESET_BLOCK[family] || PRESET_BLOCK[token] || ''].filter(Boolean).join(' ');
   const media = classifyBlock(block);
   if (media.kind === 'image' || media.kind === 'image-list') {
     const f = block.attrs.focal || {};
@@ -338,6 +356,19 @@ function blockHtml(block) {
   // hides it (the deck rule below). The label is a ::before, so the block's own text stays verbatim —
   // nothing is injected into the content a speech function would read.
   if (family === 'narration') return `${note}<aside class="${cls}" data-preset="narration">${mdToHtml(block.body)}</aside>`;
+  // §5.1 teaser: one stretched anchor over the whole card — the inline link carries the ::after, so
+  // there is never a second anchor wrapping the content (nested anchors break semantics and focus).
+  if (family === 'card' && modifier === 'teaser') {
+    const t = teaserDestination(block.body);
+    if (t) {
+      const lead = mdToHtml(block.body.slice(0, t.start));
+      const last = mdToHtml(block.body.slice(t.start)).replace('<a href=', '<a class="teaser-link" href=');
+      return `${note}<div class="${cls} teaser" data-preset="${token}">${lead}${last}</div>`;
+    }
+    const msg = 'card:teaser without a single-link last node — rendered as a plain card (§5.1)';
+    teaserWarnings.add(msg);
+    return `${note}<!-- ${msg} --><div class="${cls}" data-preset="${token}">${mdToHtml(block.body)}</div>`;
+  }
   return `${note}<div class="${cls}" data-preset="${p || ''}">${mdToHtml(block.body)}</div>`;
 }
 
@@ -417,6 +448,11 @@ figcaption{font-family:var(--sans);font-size:.87rem;color:var(--ink-3);padding:.
 .block.callout p:last-child{margin-bottom:0}
 .block.card,.col.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
   padding:1.4em 1.5em;box-shadow:var(--sh-1)}
+/* §5.1 teaser: one anchor stretched over the card — the inline link keeps its text and focus ring. */
+.block.teaser{position:relative}
+.block.teaser .teaser-link{font-weight:600}
+.block.teaser .teaser-link::after{content:"";position:absolute;inset:0;border-radius:inherit}
+.block.teaser:hover{box-shadow:var(--sh-2,var(--sh-1));border-color:var(--line-2)}
 .block.cta{text-align:center;font-family:var(--sans);font-size:1.05rem;padding:1.2em;
   border:1px dashed var(--line-2);border-radius:var(--r-lg);background:#fff}
 .block.cta p{margin:0}
@@ -676,5 +712,7 @@ if (require.main === module) {
     console.log(`${out} (${doc.sections.length} sections)`);
     for (const w of presetWarnings) console.log(`  warning: unknown preset "${w}" — rendered plain (§5.1)`);
     presetWarnings.clear();
+    for (const w of teaserWarnings) console.log(`  warning: ${w}`);
+    teaserWarnings.clear();
   }
 }

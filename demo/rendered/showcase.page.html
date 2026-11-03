@@ -60,6 +60,11 @@ figcaption{font-family:var(--sans);font-size:.87rem;color:var(--ink-3);padding:.
 .block.callout p:last-child{margin-bottom:0}
 .block.card,.col.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
   padding:1.4em 1.5em;box-shadow:var(--sh-1)}
+/* §5.1 teaser: one anchor stretched over the card — the inline link keeps its text and focus ring. */
+.block.teaser{position:relative}
+.block.teaser .teaser-link{font-weight:600}
+.block.teaser .teaser-link::after{content:"";position:absolute;inset:0;border-radius:inherit}
+.block.teaser:hover{box-shadow:var(--sh-2,var(--sh-1));border-color:var(--line-2)}
 .block.cta{text-align:center;font-family:var(--sans);font-size:1.05rem;padding:1.2em;
   border:1px dashed var(--line-2);border-radius:var(--r-lg);background:#fff}
 .block.cta p{margin:0}
@@ -178,7 +183,11 @@ header.doc .meta span{font-family:var(--sans);font-size:.75rem;font-weight:600;l
 <div class="md"><h2>An image that is <em>not</em> media</h2></div>
 <div class="block" data-preset=""><p>Because this block starts with a paragraph of text, it is a text block. The image below is inline Markdown content, not a media leaf:</p>
 <p><a href="../md-blocks-spec.md"><img src="../images/kiosk.jpg" alt="Abstract artwork — kiosk plate" loading="lazy"></a></p></div>
-<div class="md"><h2>Code remains code</h2></div>
+<div class="md"><h2>A card that knows where it goes</h2></div>
+<div class="block card teaser" data-preset="card:teaser"><h3>Writing</h3>
+<p>Essays from the book arc — the argument, not the notes.</p><p><a class="teaser-link" href="https://example.com/aurora/writing/">Read the writing</a></p></div>
+<div class="md"><p>The last node is a paragraph holding exactly one link, so that link is the card's destination: an enhanced renderer makes the whole card clickable. Any other last node — prose, a list, two links — leaves an ordinary card. A plain preview is unchanged either way, because the destination was never metadata.</p>
+<h2>Code remains code</h2></div>
 <div class="block" data-preset=""><p>An example, not a nested block. Even the apparent closing marker inside the fence stays literal:</p>
 <pre><code>&lt;!-- mb:block id=example preset=note --&gt;
 ### This belongs to an example

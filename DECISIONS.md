@@ -26,6 +26,7 @@
 | 2026-10-19 | **Narration recordings added (spec v1.7)**: a narration block may carry `audio=URL`, the pre-rendered delivery of its own text. The text stays authoritative (transcript and fallback); the recording is a per-block artifact, not deck delivery configuration. Delivery is a sequence of blocks — recordings preferred, text synthesized for blocks without one. |
 | 2026-10-23 | **Multi-speaker narration + open attribute channel (spec v1.8)**: the narration modifier slot carries a speaker identifier (`preset=narration:<id>`); narration blocks may carry `name="…"` (display name, repeated per block by design); the attribute key grammar gains an open `data:` namespace — `data:` keys parse, round-trip preserved, never interpreted by base profiles; bare keys stay closed so typos fail loud. |
 | 2026-11-03 | **Text repair, no rule change (spec v1.9)**: three passages damaged by the v1.3 insert pass restored (issue #5) — §4.3's "blank lines and ordinary comments may appear before the first `col`" sentence (which the `mb:/col` sentence had been spliced into), §6.4's "never merge two explicit blocks" bullet (which the `main` bullet had been spliced into), and the §5.2 frontmatter table, from which three §7 validation rows had been misplaced. The rows were absent from §7 entirely, so they were restored there rather than deleted: the format was missing three error rules while the frontmatter table asserted them in a table about `header`/`footer`. No semantics changed — v1.9 says exactly what v1.8 meant. |
+| 2026-11-03 | **Teaser cards (spec v1.10)**: `preset=card:teaser` — a navigation card whose destination is its last single-link paragraph; the whole card becomes a stretched link. The destination stays in the content, so a generic preview keeps the card's function. Issue #3. |
 
 ## The ranking was biased — and why we trusted the test instead
 
@@ -267,6 +268,24 @@ in comments and leaves the Markdown alone."*
     no existing channel (preset token, frontmatter, var, body) can carry it — `name=` passed (preset token
     breaks on names containing `:`; frontmatter breaks portability), which is what earned it a place in
     the closed set.
+17. **`card:teaser` — the card owns its destination** (2026-11-03, v1.10): the teaser card (kicker,
+    title, a line of note, one action, the whole card clickable) is the most common navigation unit on
+    an index page, and it surfaced migrating raum.com's homepage entry cards. `preset=card` gives the
+    frame; nothing gave the destination, leaving two bad options — a link inside the content that every
+    renderer must guess about (first? last? any?), or an `href=` attribute that moves navigation into
+    invisible metadata (dropped in every generic preview) and answers a presentation need with
+    structure. Decided: one convention, in §5.1 — **when a `card:teaser`'s last node is a paragraph
+    containing exactly one link, that link is the card's destination**, and a profile makes the whole
+    card one stretched anchor. Why last: the action reads at the end of the card, and the rule is then
+    the mirror image of the media-block rule (§4.2, "the first node is the image") — the format grows
+    one positional pattern, not two. Why format law rather than profile territory: the destination is
+    the interop point; a first-link profile and a last-link profile render a different card from the
+    same source, which is the portability loss the format exists to prevent. Alternatives rejected:
+    `card:cta` (the `cta` family already means an action *inside* content; a teaser's action is the
+    card), a `link` child node (blocks hold Markdown only — nested structure means new grammar), and
+    failing validation on a teaser with no destination (still a well-formed card; profiles warn, and an
+    author may mean it). Editor impact: none — the destination is an ordinary link node, so round-trip
+    needs no new machinery.
 
 ## Where the evidence lives
 

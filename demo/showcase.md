@@ -191,6 +191,21 @@ Markdown content, not a media leaf:
 [![Abstract artwork — kiosk plate](images/kiosk.jpg)](../md-blocks-spec.md)
 <!-- mb:/block -->
 
+## A card that knows where it goes
+
+<!-- mb:block id=writing-teaser preset=card:teaser label="Writing index entry" -->
+### Writing
+
+Essays from the book arc — the argument, not the notes.
+
+[Read the writing](https://example.com/aurora/writing/)
+<!-- mb:/block -->
+
+The last node is a paragraph holding exactly one link, so that link is the card's destination: an
+enhanced renderer makes the whole card clickable. Any other last node — prose, a list, two links —
+leaves an ordinary card. A plain preview is unchanged either way, because the destination was never
+metadata.
+
 ## Code remains code
 
 <!-- mb:block id=literal-syntax label="Literal directive examples" -->

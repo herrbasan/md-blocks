@@ -1,6 +1,6 @@
 # MD-Blocks — Authoring Brief
 
-Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.9, locked) — read it when you need depth;
+Canonical spec: [md-blocks-spec.md](md-blocks-spec.md) (v1.10, locked) — read it when you need depth;
 [demo/showcase.md](demo/showcase.md) is the tutorial.
 
 One example with every feature:
@@ -72,6 +72,10 @@ Right column.
   `file`. A video's poster is a linked image: `[![poster](poster.jpg)](film.mp4)`. An image later in a
   block is just an inline image. `preset=player` asks for inline playback; with no preset a link stays
   the link the author wrote, and `link:download` marks a reference with a download affordance.
+- **Teaser cards:** `preset=card:teaser` makes the card a link. The destination is the block's **last
+  paragraph, when it holds exactly one link** — a renderer stretches that link over the whole card, so
+  keep the action last and alone. Any other last node (prose, a list, no link, several links) leaves a
+  plain card: still valid, but no destination.
 - **Narration:** `preset=narration` marks a block as **delivery text** — spoken aloud (TTS / read-aloud),
   never shown. Any number may appear in a section; source order is delivery order. The text is verbatim:
   no typographic pass, no label injected. A slideshow renderer hides it by default; a reading renderer may
@@ -91,7 +95,7 @@ Right column.
   frontmatter.
 - **Sections:** root-level `---` separates them; surround it with blank lines (directly under a
   paragraph line it becomes a setext H2). Each section is one slide for a slideshow renderer.
-- `preset` is a semantic hint: `family[:modifier[:variant]]` — e.g. `card:warning`,
+- `preset` is a semantic hint: `family[:modifier[:variant]]` — e.g. `card:teaser`, `card:warning`,
   `image:hero:bleed`, `gallery:mosaic`, `player`, `link:download`. Unknown presets render plain with a
   warning, never an error.
 - When in doubt, author plain Markdown — unannotated content is valid. Add directives only for

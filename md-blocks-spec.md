@@ -1,6 +1,6 @@
 # MD-Blocks — Format Spec
 
-> **Status:** v1.9 (2026-11-03) — **locked**. This file contains only what is needed to understand
+> **Status:** v1.10 (2026-11-03) — **locked**. This file contains only what is needed to understand
 > the format. History, rationale, and the decisions log live in [DECISIONS.md](DECISIONS.md);
 > every change to this file is recorded there, with a version bump. Removed section numbers are
 > never reused, so external `§`-references stay valid.
@@ -380,7 +380,7 @@ Renderers should strive to emit **native semantic HTML5 elements** (`<section>`,
 
 | Family | Common Modifiers | Authored Markdown Shape | Semantic HTML5 Output | Renderer Intent |
 |---|---|---|---|---|
-| `card` | `note`<br>`warning`<br>`stat`<br>`quote`<br>`good`<br>`danger` | Paragraphs, headings, lists | Callout: `<aside role="note">`<br>Article: `<article>`<br>Quote: `<aside>` | Self-contained framed container.<br>`:note`, `:warning` apply contextual tint/border.<br>`:stat` = centered large numeric KPI callout.<br>`:quote` = editorial epigraph with attribution.<br>`:good`, `:danger` = recommendations / comparison cards. |
+| `card` | `note`<br>`warning`<br>`stat`<br>`quote`<br>`good`<br>`danger`<br>`teaser` | Paragraphs, headings, lists | Callout: `<aside role="note">`<br>Article: `<article>`<br>Quote: `<aside>` | Self-contained framed container.<br>`:note`, `:warning` apply contextual tint/border.<br>`:stat` = centered large numeric KPI callout.<br>`:quote` = editorial epigraph with attribution.<br>`:good`, `:danger` = recommendations / comparison cards.<br>`:teaser` = navigation card — the whole card is one destination (teaser convention below). |
 | `narration` | `<speaker>`<br>`audio=URL`<br>`name="…"` | Paragraphs (verbatim prose) | `<aside class="narration" data-audio="URL">` | **Delivery text — spoken, not shown.**<br>Any number may appear in a section; source order is delivery order.<br>Verbatim: no typographic pass, no injected label.<br>A surface renderer hides it by default; a reading renderer may surface it, labelled and set apart; a delivery renderer reads it per surface.<br>`audio=` names a pre-rendered recording of *this block's* text (§5.2); the text stays authoritative. |
 | `image` | `hero[:bleed]`<br>`contain`<br>`icon`<br>`left[:small]`<br>`right[:small]` | Single image + caption | `<figure class="media-image">`<br>`  <img ...>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Single media figure.<br>`:hero` = prominent banner (optional `:bleed` expands flush edge-to-edge).<br>`:contain` = fit within bounds without cropping.<br>`:icon` = compact badge sized to text height (feature callout row).<br>`:left`, `:right` = float media and wrap subsequent text prose around it (optional `:small` for compact ~25% portrait/badge). |
 | `gallery` | `featured`<br>`mosaic`<br>`row`<br>`masonry` | Image list + caption | `<figure class="media-gallery">`<br>`  <ul class="items">...</ul>`<br>`  <figcaption>Caption</figcaption>`<br>`</figure>` | Collection of media items.<br>Default = responsive thumbnail grid.<br>`:featured` = first image prominent/lead + sub-grid.<br>`:mosaic` = asymmetric editorial layout (1 large + 2 stacked).<br>`:row` = single full-width row split evenly.<br>`:masonry` = multi-column vertical waterfall. |
@@ -394,6 +394,8 @@ Renderers should strive to emit **native semantic HTML5 elements** (`<section>`,
 Optional `:bleed` is an orthogonal spatial modifier for blocks and sections that expands them horizontally to the boundary of the surrounding document container, cancelling parent container padding. Content inside retains appropriate safe margins.
 
 **A link-class media block starts as a link, and `player` is the deliberate act.** With no preset, a link-class block renders as the reference the author wrote — which is also exactly what a generic preview shows, so a profile that knows no vocabulary changes nothing. `preset=player` asks for inline playback instead. Which element carries it — a bare `<video>`, a player addon, its controls and poster — stays profile territory, exactly as the `page-break` row above is.
+
+**A `card:teaser` owns a destination — the convention, not the profile's choice.** An index card is a navigation unit: heading, a line of note, and one action. The destination stays in the content, so a generic preview keeps both the card's meaning and a working link; a dropped attribute would lose the card's function, which is why there is no `href=` (§3). The rule, positional like the media-block rule in §4.2: **when the block's last node is a paragraph containing exactly one link, that link is the card's destination.** A profile then makes the whole card clickable and may de-emphasize the inline link — as a *stretched* link, one anchor expanded over the card, never a second anchor wrapping the content (nested anchors are invalid HTML and break both semantics and focus order). Any other last node — prose, a list, no link, or several links — leaves an ordinary card: valid, unchanged, no error, and a profile that expected a destination warns (§7). Everything before the destination is the card body; which line of it reads as a kicker is styling, not structure. The convention is format law because it is the interop point: first-link, last-link and attribute spellings each produce a different card from the same source, which is the portability the format exists to prevent.
 
 Unknown *directive kind* or *attribute*: parse error. Composite editor palette entries are templates that expand into these primitives; they are not vocabulary.
 
@@ -548,6 +550,7 @@ Fail loud, with source range, stable code, message, expected form. Never guess.
 | Document has frontmatter but zero directives | informational diagnostic ("no structure") — valid, but the editor surfaces it; this catches the "author used none of the format" case without rejecting plain prose |
 | Unknown preset | renderer warning, plain rendering |
 | `preset=player` on a destination the profile cannot play (e.g. `kind=file`) | renderer warning, plain link |
+| `card:teaser` whose last node is not a paragraph with exactly one link | renderer warning, plain card (valid, unchanged) |
 | Stamped `kind` refinement differing from the profile's own inference within the same media class (e.g. `kind=video` on an extension the profile reads as audio) | renderer warning, plain rendering; the stamp is preserved |
 | Unresolvable asset | renderer warning, source reference retained |
 
