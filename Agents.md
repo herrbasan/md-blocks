@@ -89,18 +89,26 @@ This repo is **the spec and its evidence**, plus demonstrations. `tools/` exists
 format is implementable and to keep the examples honest; it is deliberately *not* the reference
 implementation, and no consumer should depend on its internals.
 
-The real consumers are **separate projects**:
+**The implementations live in nui.** Decided 2026-11-03: `nui_wc2` is home base — it is where the work
+actually happens, and it houses the **parser, the renderer and the editor**. This repo holds the
+contract they implement, and **vendors `nui_wc2` as `modules/nui_wc2`** (2026-09-11) so the demos can be
+checked against the implementation in one workspace. Consequences:
 
-- the **renderer** — the `nui-blocks` component in the nui library (`nui_wc2`), consumed by
-  `nui-markdown`; **vendored here as the `modules/nui_wc2` submodule** (2026-09-11) so renderer
-  work can be developed and tried against the spec in one workspace. It stays its own project:
-  consumer-side work items belong in the `nui_wc2` repo's issues, and the submodule pin is only
-  updated deliberately (check against upstream before editing inside it — never edit a stale pin).
-- the **editor** — a `nui` addon.
+- `tools/validate.js` and `tools/render.js` are **temporary stand-ins**, not a second implementation:
+  they hold the only current full parser, so they stay until nui's parser is importable from Node and
+  the demos can call it instead. Work items that change them are demonstrations; work items that change
+  the parser belong in `nui_wc2`.
+- **The parser must stay environment-free (no DOM).** Node consumers — the demo renderer here, nSpeech's
+  server — cannot use a browser-bound parser, so `nui_wc2` exposes it as a plain module that its own
+  browser code also uses. This is the acceptance condition for replacing `tools/*.js`.
+- The **submodule pin is the version stamp**: the spec says what is required, the pin says which
+  implementation the examples were verified against. Update it deliberately, and never edit inside a
+  stale pin (check against upstream first).
+- The **editor** is a `nui` addon.
 
 Anything executable that ships to users lives there, not here. This format was originally developed
 inside `nui_wc2` (`docs/cms-migration/`), so consumer-side work items belong in that repo's issues.
-Because two separate implementations now read this spec, **ambiguity in it is a real bug**: if an
+Because the spec and its implementations are separate projects, **ambiguity in it is a real bug**: if an
 implementer would have to guess, the spec is wrong, not the implementer.
 
 ## Status and next steps
@@ -117,11 +125,12 @@ implementer would have to guess, the spec is wrong, not the implementer.
   namespace. v1.9 was a text repair only: three passages spliced by the v1.3 insert pass restored, and
   three error rules that had drifted into the §5.2 frontmatter table returned to §7. v1.10 added
   `card:teaser` — a navigation card whose destination is its last single-link paragraph (§5.1); the
-  demonstration renderer implements it as one stretched anchor. No parser, validator, renderer, or
-  editor exists yet.
-- Next: a zero-dependency JS parser/validator. Spec §10 (conformance cases) is the fixture list;
-  §7 (validation) and §8 (round-trip contract) define its behavior. The archived test-runs are
-  additional real-world fixtures.
+  demonstration renderer implements it as one stretched anchor. No production parser, validator,
+  renderer, or editor exists yet.
+- Next: **in `nui_wc2`, not here** — extract the DOM-free parser (see "Spec repo boundary" above;
+  tracked in that repo's issues), then replace `tools/validate.js` / `tools/render.js` with callers.
+  Spec §10 (conformance cases) is the fixture list; §7 (validation) and §8 (round-trip contract) define
+  the parser's behavior. The archived test-runs are additional real-world fixtures.
 - Consumers (renderers, editors, migration adapters) are separate projects;
   this repo contains the spec and its examples only.
 
